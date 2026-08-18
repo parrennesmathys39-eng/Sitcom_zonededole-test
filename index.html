@@ -6,7 +6,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>SICTOM Zone de Dole — Déchèteries</title>
+<title>SICTOM Zone de Dole — État des déchèteries </title>
 
 <link
     rel="stylesheet"
@@ -1543,22 +1543,22 @@ input:focus-visible {
 const firebaseConfig = {
 
     apiKey:
-        "AIzaSyC85gp3FkHaVZPm7HdFP8jPlvATT-QH9_s",
+        "AIzaSyADbz5YPks484OZwdfxFiNnQ8USN5yiiAI",
 
     authDomain:
-        "sictom-zone-de-dole-17296.firebaseapp.com",
+        "sictom-zone-de-dole-test.firebaseapp.com",
 
     projectId:
-        "sictom-zone-de-dole-17296",
+        "sictom-zone-de-dole-test",
 
     storageBucket:
-        "sictom-zone-de-dole-17296.firebasestorage.app",
+        "sictom-zone-de-dole-test.firebasestorage.app",
 
     messagingSenderId:
-        "378183859073",
+        "1044191548531",
 
     appId:
-        "1:378183859073:web:3b347f84a072fb0cb54680"
+        "1:1044191548531:web:9804279fbf09db964c0606"
 
 };
 
@@ -1566,6 +1566,10 @@ const firebaseConfig = {
 firebase.initializeApp(
     firebaseConfig
 );
+
+
+const db =
+    firebase.firestore();
 
 
 const db =
