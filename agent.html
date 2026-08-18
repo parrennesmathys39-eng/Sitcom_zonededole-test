@@ -1,0 +1,1431 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Espace agent - SICTOM Zone de Dole</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --vert-nuit: #14342A;
+      --vert-foret: #1B4B3A;
+      --vert-mousse: #4C7A63;
+      --vert-clair: #E8F0EA;
+
+      --fond: #F3F5F2;
+      --papier: #FFFFFF;
+
+      --encre: #1B2420;
+      --encre-douce: #526058;
+      --trait: #E1E5E0;
+
+      --ok-fond: #E6F5EA;
+      --ok-texte: #116B36;
+      --ok-trait: #2EA25B;
+
+      --attn-fond: #FFF4DF;
+      --attn-texte: #8C5300;
+      --attn-trait: #E5A024;
+
+      --alerte-fond: #FCEBEA;
+      --alerte-texte: #B8251B;
+      --alerte-trait: #E5534B;
+
+      --rayon: 8px;
+      --rayon-lg: 14px;
+      --ombre: 0 2px 8px rgba(20, 35, 25, 0.05), 0 10px 25px rgba(20, 35, 25, 0.05);
+      --ombre-forte: 0 4px 16px rgba(0, 0, 0, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--fond);
+      color: var(--encre);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    h1, h2, h3 {
+      font-family: 'Space Grotesk', 'Inter', sans-serif;
+    }
+
+    /* BANDEAU SUPÉRIEUR */
+    header {
+      background: var(--vert-nuit);
+      color: #EFF4F0;
+      padding: 16px 20px;
+      border-bottom: 4px solid var(--vert-mousse);
+      transition: background 0.5s ease;
+      position: relative;
+      z-index: 100;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+    }
+
+    .header-top {
+      max-width: 800px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+    }
+
+    .logo-badge {
+      background: #FFFFFF;
+      padding: 6px 12px;
+      border-radius: var(--rayon);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+      flex-shrink: 0;
+    }
+
+    .logo-badge img {
+      height: 48px;
+      max-height: 52px;
+      max-width: 170px;
+      width: auto;
+      object-fit: contain;
+      display: block;
+    }
+
+    .titres-entete {
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      line-height: 1.2;
+    }
+
+    header p {
+      margin: 2px 0 0;
+      font-size: 13px;
+      color: #C2D1C8;
+      font-weight: 500;
+    }
+
+    .header-live {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #EFF4F0;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 6px 12px;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
+
+    .live-dot {
+      width: 8px;
+      height: 8px;
+      background-color: #2EA25B;
+      border-radius: 50%;
+      display: inline-block;
+      box-shadow: 0 0 8px #2EA25B;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: auto;
+      padding: 20px 16px 60px;
+    }
+
+    /* CONNEXION */
+    #connexion {
+      max-width: 440px;
+      margin: 40px auto;
+      padding: 0 16px;
+    }
+
+    .card {
+      background: var(--papier);
+      padding: 32px 28px;
+      border-radius: var(--rayon-lg);
+      border: 1px solid var(--trait);
+      box-shadow: var(--ombre);
+    }
+
+    .card h2 {
+      margin: 0 0 8px;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--vert-nuit);
+    }
+
+    .card > p {
+      margin: 0 0 24px;
+      font-size: 14px;
+      color: var(--encre-douce);
+      line-height: 1.5;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--encre);
+    }
+
+    input, select {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid #CBD1C9;
+      border-radius: var(--rayon);
+      font-size: 15px;
+      font-family: inherit;
+      background: var(--papier);
+      color: var(--encre);
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--vert-mousse);
+      box-shadow: 0 0 0 3px rgba(76, 122, 99, 0.2);
+    }
+
+    .champ {
+      margin-bottom: 18px;
+    }
+
+    #connexionBtn {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: var(--rayon);
+      background: var(--vert-foret);
+      color: white;
+      font-size: 16px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      margin-top: 6px;
+      transition: background 0.15s ease, transform 0.05s ease;
+    }
+
+    #connexionBtn:hover:not(:disabled) {
+      background: var(--vert-nuit);
+    }
+
+    #connexionBtn:disabled {
+      opacity: 0.65;
+      cursor: wait;
+    }
+
+    .message {
+      display: none;
+      margin-top: 18px;
+      padding: 14px 16px;
+      border-radius: var(--rayon);
+      border: 1px solid transparent;
+      font-size: 14px;
+      line-height: 1.5;
+      word-break: break-word;
+    }
+
+    .erreur {
+      background: var(--alerte-fond);
+      color: var(--alerte-texte);
+      border-color: var(--alerte-trait);
+    }
+
+    .succes {
+      background: var(--ok-fond);
+      color: var(--ok-texte);
+      border-color: var(--ok-trait);
+    }
+
+    .info {
+      background: var(--attn-fond);
+      color: var(--attn-texte);
+      border-color: var(--attn-trait);
+    }
+
+    .code {
+      background: rgba(0,0,0,0.05);
+      padding: 10px 12px;
+      border-radius: 6px;
+      margin-top: 8px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      overflow-wrap: anywhere;
+    }
+
+    /* APPLICATION & BARRE AGENT */
+    #application {
+      display: none;
+    }
+
+    .barre-agent {
+      background: var(--papier);
+      padding: 16px 20px;
+      border-radius: var(--rayon-lg);
+      border: 1px solid var(--trait);
+      margin-bottom: 20px;
+      box-shadow: var(--ombre);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    @media (min-width: 580px) {
+      .barre-agent {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+      }
+    }
+
+    .identite-agent {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .avatar-agent {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--vert-clair);
+      color: var(--vert-foret);
+      border: 2px solid var(--vert-mousse);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 16px;
+      flex-shrink: 0;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+
+    .bloc-identite {
+      min-width: 0;
+    }
+
+    .libelle-agent {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--encre-douce);
+    }
+
+    .email {
+      color: var(--encre);
+      font-size: 15px;
+      font-weight: 700;
+      margin-top: 1px;
+      word-break: break-word;
+    }
+
+    .actions-agent {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .bouton-action {
+      border: 1px solid var(--trait);
+      border-radius: var(--rayon);
+      padding: 9px 14px;
+      font-weight: 600;
+      font-size: 13.5px;
+      font-family: inherit;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+
+    .deconnexion {
+      background: #F4F6F3;
+      color: var(--encre);
+    }
+
+    .deconnexion:hover {
+      background: #E8EBE5;
+      border-color: #BAC2B7;
+    }
+
+    .admin {
+      background: var(--vert-nuit);
+      color: white;
+      border-color: var(--vert-nuit);
+    }
+
+    .admin:hover {
+      background: var(--vert-foret);
+    }
+
+    .retour {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 20px;
+      color: var(--vert-foret);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .retour:hover {
+      text-decoration: underline;
+    }
+
+    /* SÉLECTEUR DE SITE */
+    .site-card {
+      background: var(--papier);
+      padding: 20px 22px;
+      border-radius: var(--rayon-lg);
+      border: 1px solid var(--trait);
+      margin-bottom: 24px;
+      box-shadow: var(--ombre);
+    }
+
+    .site-card h2 {
+      margin: 0 0 4px;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--vert-nuit);
+    }
+
+    .sous-titre {
+      margin: 0 0 14px;
+      font-size: 13.5px;
+      color: var(--encre-douce);
+    }
+
+    .champ-site select {
+      font-weight: 600;
+      font-size: 16px;
+      color: var(--vert-nuit);
+      background-color: var(--vert-clair);
+      border-color: var(--vert-mousse);
+      cursor: pointer;
+    }
+
+    #test {
+      background: var(--vert-clair);
+      color: var(--vert-foret);
+      padding: 10px 14px;
+      border-radius: var(--rayon);
+      border: 1px solid var(--ok-trait);
+      margin-bottom: 15px;
+      font-size: 13px;
+      font-weight: 600;
+      display: none;
+    }
+
+    #etatConnexion {
+      display: none;
+    }
+
+    /* GRILLE DE FLUX / BENNES */
+    .flux-card {
+      background: var(--papier);
+      padding: 22px;
+      border-radius: var(--rayon-lg);
+      border: 1px solid var(--trait);
+      margin-bottom: 20px;
+      box-shadow: var(--ombre);
+    }
+
+    .flux-card h2 {
+      margin: 0 0 4px;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--vert-nuit);
+    }
+
+    .grille-flux {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      margin-top: 18px;
+    }
+
+    @media (min-width: 640px) {
+      .grille-flux {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .flux {
+      background: #FAFCFA;
+      padding: 16px;
+      border-radius: var(--rayon-lg);
+      border: 1px solid var(--trait);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: border-color 0.15s ease;
+    }
+
+    .flux:hover {
+      border-color: #C2CAC0;
+    }
+
+    .flux-entete {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .flux-nom {
+      font-size: 16px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--encre);
+    }
+
+    .flux-icone {
+      font-size: 20px;
+      background: #FFFFFF;
+      padding: 4px 8px;
+      border-radius: 6px;
+      border: 1px solid var(--trait);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    }
+
+    .boutons {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .statut {
+      border: 1.5px solid var(--trait);
+      border-radius: var(--rayon);
+      background: var(--papier);
+      padding: 10px 4px;
+      font-size: 12.5px;
+      font-weight: 700;
+      font-family: inherit;
+      color: var(--encre-douce);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      text-align: center;
+      transition: all 0.15s ease;
+      min-height: 52px;
+    }
+
+    .statut:disabled {
+      opacity: 0.55;
+      cursor: wait;
+    }
+
+    .statut .pastille {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 0 2px rgba(255,255,255,0.8);
+    }
+
+    .statut.vert {
+      color: var(--ok-texte);
+    }
+
+    .statut.orange {
+      color: var(--attn-texte);
+    }
+
+    .statut.rouge {
+      color: var(--alerte-texte);
+    }
+
+    .statut:hover:not(:disabled) {
+      border-color: currentColor;
+      transform: translateY(-1px);
+    }
+
+    .statut.selectionne {
+      color: white !important;
+      border-width: 2px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+
+    .statut.vert.selectionne {
+      background: var(--ok-texte);
+      border-color: var(--ok-texte);
+    }
+
+    .statut.orange.selectionne {
+      background: var(--attn-texte);
+      border-color: var(--attn-texte);
+    }
+
+    .statut.rouge.selectionne {
+      background: var(--alerte-texte);
+      border-color: var(--alerte-texte);
+    }
+
+    .statut.selectionne .pastille {
+      background: white;
+    }
+
+    /* MODALE COMMANDER ENLÈVEMENT */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(20, 35, 25, 0.6);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .modal-card {
+      background: var(--papier);
+      border-radius: var(--rayon-lg);
+      width: 100%;
+      max-width: 450px;
+      padding: 24px;
+      box-shadow: var(--ombre-forte);
+      border: 1px solid var(--trait);
+      animation: modalApparition 0.2s ease-out;
+    }
+
+    @keyframes modalApparition {
+      from { transform: scale(0.95); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .modal-header {
+      margin-bottom: 16px;
+    }
+
+    .modal-header h3 {
+      margin: 0;
+      font-size: 19px;
+      color: var(--vert-nuit);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .modal-header p {
+      margin: 6px 0 0;
+      font-size: 13.5px;
+      color: var(--encre-douce);
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+      justify-content: flex-end;
+    }
+
+    .btn-modal {
+      padding: 10px 16px;
+      border-radius: var(--rayon);
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.15s ease;
+    }
+
+    .btn-modal-secondaire {
+      background: #F0F2EF;
+      color: var(--encre-douce);
+      border-color: var(--trait);
+    }
+
+    .btn-modal-secondaire:hover {
+      background: #E2E6E1;
+    }
+
+    .btn-modal-primaire {
+      background: var(--attn-trait);
+      color: #FFFFFF;
+    }
+
+    .btn-modal-primaire:hover {
+      background: #D49018;
+    }
+
+    @media (max-width: 580px) {
+      header {
+        padding: 12px 16px;
+      }
+
+      .header-top {
+        gap: 10px;
+      }
+
+      .logo-badge {
+        padding: 4px 8px;
+      }
+
+      .logo-badge img {
+        height: 38px;
+        max-height: 42px;
+        max-width: 150px;
+      }
+
+      header h1 {
+        font-size: 16px;
+      }
+
+      header p {
+        font-size: 11px;
+      }
+
+      .header-live {
+        font-size: 11px;
+        padding: 4px 8px;
+      }
+
+      .boutons {
+        grid-template-columns: 1fr;
+      }
+
+      .statut {
+        flex-direction: row;
+        justify-content: flex-start;
+        padding: 12px 14px;
+        font-size: 14px;
+        min-height: auto;
+      }
+
+      .modal-actions {
+        flex-direction: column-reverse;
+      }
+
+      .btn-modal {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- BANDEAU HAUT -->
+  <header id="bandeau">
+    <div class="header-top">
+      <div class="logo">
+        <div class="logo-badge">
+          <img src="https://static.wixstatic.com/media/60671e_fa4575df879e40aaa5ad76fe51920ce0~mv2.png/v1/fill/w_354,h_165,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/logo%20horizontal.png" alt="SICTOM Zone de Dole">
+        </div>
+      </div>
+
+      <div class="titres-entete">
+        <h1>Espace Agent</h1>
+        <p>SICTOM Zone de Dole — Gestion des flux en déchèterie</p>
+      </div>
+
+      <div class="header-live">
+        <span class="live-dot"></span>
+        Données en temps réel
+      </div>
+    </div>
+  </header>
+
+  <!-- CONNEXION -->
+  <div id="connexion">
+    <div class="card">
+      <h2>Connexion Agent</h2>
+      <p>Connectez-vous avec vos identifiants pour mettre à jour l'état des bennes.</p>
+
+      <div class="champ">
+        <label for="email">Adresse email</label>
+        <input type="email" id="email" placeholder="prenom.nom@sictom-dole.fr" autocomplete="email">
+      </div>
+
+      <div class="champ">
+        <label for="password">Mot de passe</label>
+        <input type="password" id="password" placeholder="Votre mot de passe" autocomplete="current-password">
+      </div>
+
+      <button id="connexionBtn">Se connecter</button>
+
+      <div id="messageConnexion" class="message"></div>
+    </div>
+  </div>
+
+  <!-- APPLICATION -->
+  <div id="application">
+    <div class="container">
+
+      <!-- BARRE AGENT -->
+      <div class="barre-agent">
+        <div class="identite-agent">
+          <div class="avatar-agent" id="avatarAgent">·</div>
+          <div class="bloc-identite">
+            <div class="libelle-agent">Agent connecté</div>
+            <div id="emailAgent" class="email"></div>
+          </div>
+        </div>
+
+        <div id="etatConnexion"></div>
+
+        <div class="actions-agent">
+          <div id="actionsAdmin" style="display:none;">
+            <a href="./admin.html" class="bouton-action admin">Administration</a>
+          </div>
+          <button id="deconnexionBtn" class="bouton-action deconnexion">Se déconnecter</button>
+        </div>
+      </div>
+
+      <a href="./index.html" class="retour">← Retour à l'accueil</a>
+
+      <!-- SÉLECTION DU SITE -->
+      <div class="site-card">
+        <h2>Déchèterie d'intervention</h2>
+        <p class="sous-titre">Sélectionnez le site sur lequel vous effectuez les mises à jour.</p>
+        <div class="champ-site">
+          <select id="site">
+            <option value="Chaussin">Chaussin</option>
+            <option value="Dole">Dole</option>
+            <option value="Brevans">Brevans</option>
+            <option value="Tavaux">Tavaux</option>
+            <option value="Dampierre">Dampierre</option>
+            <option value="Mont-sous-Vaudrey">Mont-sous-Vaudrey</option>
+            <option value="Montmirey-le-Château">Montmirey-le-Château</option>
+            <option value="Saligney">Saligney</option>
+            <option value="Villers-Farlay">Villers-Farlay</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="test">Application connectée à Firebase</div>
+
+      <!-- FLUX ET BENNES -->
+      <div class="flux-card">
+        <h2>État de remplissage des bennes</h2>
+        <p class="sous-titre">Mettez à jour le statut en temps réel pour chaque flux.</p>
+
+        <div class="grille-flux">
+
+          <!-- BOIS A -->
+          <div class="flux">
+            <div class="flux-entete">
+              <div class="flux-nom"><span class="flux-icone">🪵</span> Bois A</div>
+            </div>
+            <div class="boutons">
+              <button class="statut vert" data-flux="bois-a" data-statut="disponible">
+                <span class="pastille"></span> Disponible
+              </button>
+              <button class="statut orange" data-flux="bois-a" data-statut="presque">
+                <span class="pastille"></span> Presque pleine
+              </button>
+              <button class="statut rouge" data-flux="bois-a" data-statut="pleine">
+                <span class="pastille"></span> Pleine
+              </button>
+            </div>
+          </div>
+
+          <!-- BOIS B -->
+          <div class="flux">
+            <div class="flux-entete">
+              <div class="flux-nom"><span class="flux-icone">🪵</span> Bois B</div>
+            </div>
+            <div class="boutons">
+              <button class="statut vert" data-flux="bois-b" data-statut="disponible">
+                <span class="pastille"></span> Disponible
+              </button>
+              <button class="statut orange" data-flux="bois-b" data-statut="presque">
+                <span class="pastille"></span> Presque pleine
+              </button>
+              <button class="statut rouge" data-flux="bois-b" data-statut="pleine">
+                <span class="pastille"></span> Pleine
+              </button>
+            </div>
+          </div>
+
+          <!-- MOBILIER -->
+          <div class="flux">
+            <div class="flux-entete">
+              <div class="flux-nom"><span class="flux-icone">🛋️</span> Mobilier</div>
+            </div>
+            <div class="boutons">
+              <button class="statut vert" data-flux="mobilier" data-statut="disponible">
+                <span class="pastille"></span> Disponible
+              </button>
+              <button class="statut orange" data-flux="mobilier" data-statut="presque">
+                <span class="pastille"></span> Presque pleine
+              </button>
+              <button class="statut rouge" data-flux="mobilier" data-statut="pleine">
+                <span class="pastille"></span> Pleine
+              </button>
+            </div>
+          </div>
+
+          <!-- CARTON -->
+          <div class="flux">
+            <div class="flux-entete">
+              <div class="flux-nom"><span class="flux-icone">📦</span> Carton</div>
+            </div>
+            <div class="boutons">
+              <button class="statut vert" data-flux="carton" data-statut="disponible">
+                <span class="pastille"></span> Disponible
+              </button>
+              <button class="statut orange" data-flux="carton" data-statut="presque">
+                <span class="pastille"></span> Presque pleine
+              </button>
+              <button class="statut rouge" data-flux="carton" data-statut="pleine">
+                <span class="pastille"></span> Pleine
+              </button>
+            </div>
+          </div>
+
+          <!-- GRAVATS -->
+          <div class="flux">
+            <div class="flux-entete">
+              <div class="flux-nom"><span class="flux-icone">🪨</span> Gravats</div>
+            </div>
+            <div class="boutons">
+              <button class="statut vert" data-flux="gravats" data-statut="disponible">
+                <span class="pastille"></span> Disponible
+              </button>
+              <button class="statut orange" data-flux="gravats" data-statut="presque">
+                <span class="pastille"></span> Presque pleine
+              </button>
+              <button class="statut rouge" data-flux="gravats" data-statut="pleine">
+                <span class="pastille"></span> Pleine
+              </button>
+            </div>
+          </div>
+
+          <!-- PLÂTRE -->
+          <div class="flux">
+            <div class="flux-entete">
+              <div class="flux-nom"><span class="flux-icone">🧱</span> Plâtre</div>
+            </div>
+            <div class="boutons">
+              <button class="statut vert" data-flux="platre" data-statut="disponible">
+                <span class="pastille"></span> Disponible
+              </button>
+              <button class="statut orange" data-flux="platre" data-statut="presque">
+                <span class="pastille"></span> Presque pleine
+              </button>
+              <button class="statut rouge" data-flux="platre" data-statut="pleine">
+                <span class="pastille"></span> Pleine
+              </button>
+            </div>
+          </div>
+
+          <!-- FERRAILLE -->
+          <div class="flux">
+            <div class="flux-entete">
+              <div class="flux-nom"><span class="flux-icone">🔩</span> Ferraille</div>
+            </div>
+            <div class="boutons">
+              <button class="statut vert" data-flux="ferraille" data-statut="disponible">
+                <span class="pastille"></span> Disponible
+              </button>
+              <button class="statut orange" data-flux="ferraille" data-statut="presque">
+                <span class="pastille"></span> Presque pleine
+              </button>
+              <button class="statut rouge" data-flux="ferraille" data-statut="pleine">
+                <span class="pastille"></span> Pleine
+              </button>
+            </div>
+          </div>
+
+          <!-- PLASTIQUE DUR -->
+          <div class="flux">
+            <div class="flux-entete">
+              <div class="flux-nom"><span class="flux-icone">🧴</span> Plastique dur</div>
+            </div>
+            <div class="boutons">
+              <button class="statut vert" data-flux="plastique-dur" data-statut="disponible">
+                <span class="pastille"></span> Disponible
+              </button>
+              <button class="statut orange" data-flux="plastique-dur" data-statut="presque">
+                <span class="pastille"></span> Presque pleine
+              </button>
+              <button class="statut rouge" data-flux="plastique-dur" data-statut="pleine">
+                <span class="pastille"></span> Pleine
+              </button>
+            </div>
+          </div>
+
+          <!-- TOUT VENANT -->
+          <div class="flux">
+            <div class="flux-entete">
+              <div class="flux-nom"><span class="flux-icone">🗑️</span> Tout-venant</div>
+            </div>
+            <div class="boutons">
+              <button class="statut vert" data-flux="tout-venant" data-statut="disponible">
+                <span class="pastille"></span> Disponible
+              </button>
+              <button class="statut orange" data-flux="tout-venant" data-statut="presque">
+                <span class="pastille"></span> Presque pleine
+              </button>
+              <button class="statut rouge" data-flux="tout-venant" data-statut="pleine">
+                <span class="pastille"></span> Pleine
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        <div id="message" class="message"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODALE : COMMANDER VOS ENLÈVEMENTS -->
+  <div id="modalEnlevement" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>🚛 Commander vos enlèvements</h3>
+        <p>Informer l'administration pour anticiper une rotation de benne.</p>
+      </div>
+
+      <div class="champ">
+        <label for="numeroBenne">Numéro de la benne <span style="color: var(--alerte-texte);">*</span></label>
+        <input type="text" id="numeroBenne" placeholder="ex: Benne n°4, B-12...">
+        <div id="erreurNumeroBenne" style="display:none; color: var(--alerte-texte); font-size: 12.5px; font-weight: 600; margin-top: 6px;">
+          ⚠️ Veuillez saisir un numéro de benne pour commander l'enlèvement.
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button id="btnPasserModal" class="btn-modal btn-modal-secondaire">Passer sans commande</button>
+        <button id="btnValiderModal" class="btn-modal btn-modal-primaire">Valider & Commander</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FIREBASE & SCRIPT -->
+  <script src="https://www.gstatic.com/firebasejs/12.16.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.16.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore-compat.js"></script> 
+
+  <script> 
+    /* FIREBASE CONFIGURATION */ 
+    const firebaseConfig = { 
+      apiKey: "AIzaSyC85gp3FkHaVZPm7HdFP8jPlvATT-QH9_s", 
+      authDomain: "sictom-zone-de-dole-17296.firebaseapp.com", 
+      projectId: "sictom-zone-de-dole-17296", 
+      storageBucket: "sictom-zone-de-dole-17296.firebasestorage.app", 
+      messagingSenderId: "378183859073", 
+      appId: "1:378183859073:web:3b347f84a072fb0cb54680" 
+    }; 
+     
+    firebase.initializeApp(firebaseConfig); 
+    const auth = firebase.auth(); 
+    const db = firebase.firestore(); 
+
+    /* ÉLÉMENTS DOM */ 
+    const connexion = document.getElementById("connexion"); 
+    const application = document.getElementById("application"); 
+    const connexionBtn = document.getElementById("connexionBtn"); 
+    const messageConnexion = document.getElementById("messageConnexion"); 
+    const emailInput = document.getElementById("email"); 
+    const passwordInput = document.getElementById("password"); 
+    const emailAgent = document.getElementById("emailAgent"); 
+    const avatarAgent = document.getElementById("avatarAgent"); 
+    const deconnexionBtn = document.getElementById("deconnexionBtn"); 
+    const siteSelect = document.getElementById("site"); 
+    const boutons = document.querySelectorAll(".statut"); 
+    const message = document.getElementById("message"); 
+    const test = document.getElementById("test"); 
+    const actionsAdmin = document.getElementById("actionsAdmin"); 
+    const bandeau = document.getElementById("bandeau"); 
+    const etatConnexion = document.getElementById("etatConnexion"); 
+
+    /* MODALE ENLÈVEMENT */
+    const modalEnlevement = document.getElementById("modalEnlevement");
+    const numeroBenneInput = document.getElementById("numeroBenne");
+    const erreurNumeroBenne = document.getElementById("erreurNumeroBenne");
+    const btnPasserModal = document.getElementById("btnPasserModal");
+    const btnValiderModal = document.getElementById("btnValiderModal");
+
+    let fluxEnCours = null;
+    let statutEnCours = null;
+    let nomUtilisateur = ""; 
+
+    /* COULEURS DU BANDEAU */ 
+    const couleursBandeau = ["#14342A", "#1B4B3A", "#2E5A46", "#1F4E3D", "#123729"]; 
+    let couleurActuelle = 0; 
+
+    function changerCouleurBandeau() { 
+      couleurActuelle++; 
+      if (couleurActuelle >= couleursBandeau.length) { 
+        couleurActuelle = 0; 
+      } 
+      bandeau.style.background = couleursBandeau[couleurActuelle]; 
+    } 
+
+    function siteId(nom) { 
+      return nom.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""); 
+    } 
+
+    function initiales(texte) { 
+      if (!texte) return "·"; 
+      const parties = texte.trim().split(/\s+/).filter(Boolean); 
+      if (parties.length === 0) return "·"; 
+      if (parties.length === 1) return parties[0].substring(0, 2).toUpperCase(); 
+      return (parties[0][0] + parties[parties.length - 1][0]).toUpperCase(); 
+    } 
+
+    function afficherErreur(titre, error) { 
+      message.className = "message erreur"; 
+      message.innerHTML = "<strong>" + titre + "</strong><div class='code'><strong>Code :</strong><br>" + 
+        (error && error.code ? error.code : "inconnu") + "<br><br><strong>Message :</strong><br>" + 
+        (error && error.message ? error.message : "Erreur inconnue") + "</div>"; 
+      message.style.display = "block"; 
+    } 
+
+    async function chargerProfilUtilisateur(user) { 
+      nomUtilisateur = user.email || "Utilisateur"; 
+      emailAgent.textContent = nomUtilisateur; 
+      avatarAgent.textContent = initiales(nomUtilisateur); 
+
+      try { 
+        const profil = await db.collection("users").doc(user.uid).get(); 
+        if (!profil.exists) return; 
+
+        const donnees = profil.data(); 
+        const prenom = typeof donnees.prenom === "string" ? donnees.prenom.trim() : ""; 
+        const nom = typeof donnees.nom === "string" ? donnees.nom.trim() : ""; 
+        const nomComplet = [prenom, nom].filter(Boolean).join(" "); 
+
+        if (nomComplet) { 
+          nomUtilisateur = nomComplet; 
+          emailAgent.textContent = nomComplet; 
+          avatarAgent.textContent = initiales(nomComplet); 
+        } 
+      } catch(error) { 
+        console.error("Erreur profil :", error); 
+      } 
+    } 
+
+    async function verifierRoleAdmin(user) { 
+      actionsAdmin.style.display = "none"; 
+      try { 
+        const profil = await db.collection("users").doc(user.uid).get(); 
+        if (!profil.exists) return; 
+        const donnees = profil.data(); 
+        if (donnees.role === "admin") { 
+          actionsAdmin.style.display = "block"; 
+        } 
+      } catch(error) { 
+        console.error("Erreur rôle :", error); 
+      } 
+    } 
+
+    /* CONNEXION */ 
+    connexionBtn.addEventListener("click", async function() { 
+      messageConnexion.style.display = "block"; 
+      messageConnexion.className = "message info"; 
+      messageConnexion.innerHTML = "Connexion à Firebase..."; 
+
+      const email = emailInput.value.trim(); 
+      const password = passwordInput.value; 
+
+      if (!email || !password) { 
+        messageConnexion.className = "message erreur"; 
+        messageConnexion.innerHTML = "Entre ton email et ton mot de passe."; 
+        return; 
+      } 
+
+      connexionBtn.disabled = true; 
+      connexionBtn.textContent = "Connexion..."; 
+
+      try { 
+        await auth.signInWithEmailAndPassword(email, password); 
+        messageConnexion.className = "message succes"; 
+        messageConnexion.innerHTML = "Connexion réussie."; 
+      } catch(error) { 
+        messageConnexion.className = "message erreur"; 
+        messageConnexion.innerHTML = "<strong>Erreur Firebase</strong><div class='code'><strong>Code :</strong><br>" + 
+          (error.code || "inconnu") + "<br><br><strong>Message :</strong><br>" + (error.message || "inconnu") + "</div>"; 
+      } finally { 
+        connexionBtn.disabled = false; 
+        connexionBtn.textContent = "Se connecter"; 
+      } 
+    }); 
+
+    /* ÉTAT AUTHENTIFICATION */ 
+    auth.onAuthStateChanged(async function(user) { 
+      if (!user) { 
+        connexion.style.display = "block"; 
+        application.style.display = "none"; 
+        actionsAdmin.style.display = "none"; 
+        return; 
+      } 
+
+      connexion.style.display = "none"; 
+      application.style.display = "block"; 
+      test.style.display = "block"; 
+      etatConnexion.textContent = "Connecté à Firebase"; 
+      emailAgent.textContent = "Chargement du profil..."; 
+
+      await chargerProfilUtilisateur(user); 
+      await verifierRoleAdmin(user); 
+      await chargerStatuts(); 
+    }); 
+
+    /* DÉCONNEXION */ 
+    deconnexionBtn.addEventListener("click", async function() { 
+      try { 
+        await auth.signOut(); 
+      } catch(error) { 
+        afficherErreur("Impossible de se déconnecter", error); 
+      } 
+    }); 
+
+    function selectionner(flux, statut) { 
+      document.querySelectorAll('[data-flux="' + flux + '"]').forEach(function(btn) { 
+        btn.classList.remove("selectionne"); 
+      }); 
+
+      const bouton = document.querySelector('[data-flux="' + flux + '"][data-statut="' + statut + '"]'); 
+      if (bouton) { 
+        bouton.classList.add("selectionne"); 
+      } 
+    } 
+
+    /* CHARGER STATUTS */ 
+    async function chargerStatuts() { 
+      const site = siteSelect.value; 
+
+      message.className = "message info"; 
+      message.innerHTML = "Chargement des flux de " + site + "..."; 
+      message.style.display = "block"; 
+
+      try { 
+        const snapshot = await db.collection("dechetteries").doc(siteId(site)).collection("flux").get(); 
+
+        boutons.forEach(function(btn) { 
+          btn.classList.remove("selectionne"); 
+        }); 
+
+        snapshot.forEach(function(doc) { 
+          const data = doc.data(); 
+          if (data.flux && data.statut) { 
+            selectionner(data.flux, data.statut); 
+          } 
+        }); 
+
+        message.className = "message succes"; 
+        message.innerHTML = "Flux chargés pour " + site + " (" + snapshot.size + " enregistré(s))."; 
+
+        setTimeout(function() { 
+          message.style.display = "none"; 
+        }, 2000); 
+
+      } catch(error) { 
+        afficherErreur("Impossible de lire les flux", error); 
+        console.error("Erreur lecture flux :", error); 
+      } 
+    } 
+
+    /* LOGIQUE D'ENREGISTREMENT FLUX — ROBUSTE
+       Chaque opération Firestore est indépendante : une erreur dans
+       l'historique ne bloque jamais une demande d'enlèvement. */
+    async function enregistrerStatut(flux, statut, avecCommande = false, numeroBenne = "") {
+      const user = auth.currentUser;
+      if (!user) return;
+
+      const site = siteSelect.value;
+      selectionner(flux, statut);
+      message.className = "message info";
+      message.innerHTML = "Enregistrement de " + flux + " pour " + site + "...";
+      message.style.display = "block";
+      boutons.forEach(function(btn) { btn.disabled = true; });
+
+      const nomAgent = nomUtilisateur || user.email || "Utilisateur";
+      const siteIdentifiant = siteId(site);
+      let erreursSecondaires = [];
+
+      try {
+        if (!nomUtilisateur || nomUtilisateur === user.email) {
+          await chargerProfilUtilisateur(user);
+        }
+      } catch (e) {
+        console.warn("Profil non chargé, utilisation de l'identité Firebase :", e);
+      }
+
+      try {
+        /* 1 — ÉTAT ACTUEL DE LA BENNE */
+        await db.collection("dechetteries").doc(siteIdentifiant).collection("flux").doc(flux).set({
+          site: site,
+          flux: flux,
+          statut: statut,
+          modifiePar: nomAgent,
+          modifieParEmail: user.email || "",
+          miseAJour: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+
+        /* 2 — HISTORIQUE : indépendant du reste */
+        try {
+          await db.collection("historique_statuts").add({
+            site: site,
+            siteId: siteIdentifiant,
+            flux: flux,
+            ancienStatut: null,
+            statut: statut,
+            nouveauStatut: statut,
+            agent: nomAgent,
+            agentEmail: user.email || "",
+            dateChangement: firebase.firestore.FieldValue.serverTimestamp()
+          });
+        } catch (e) {
+          console.error("Échec écriture historique_statuts :", e);
+          erreursSecondaires.push("historique des statuts");
+        }
+
+        /* 3 — DEMANDE D'ENLÈVEMENT : indépendante de l'historique */
+        let detailCommande = "";
+        if (avecCommande) {
+          const numero = String(numeroBenne || "").trim();
+          if (!numero) throw new Error("Le numéro de benne est obligatoire.");
+
+          try {
+            await db.collection("demandes_enlevement").add({
+              site: site,
+              siteId: siteIdentifiant,
+              flux: flux,
+              statut: statut,
+              numeroBenne: numero,
+              agent: nomAgent,
+              agentEmail: user.email || "",
+              statutDemande: "en_attente",
+              dateDemande: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            detailCommande = "<br><small>🔔 Demande d'enlèvement envoyée à l'administration.</small>";
+          } catch (e) {
+            console.error("Échec écriture demandes_enlevement :", e);
+            throw new Error("La demande d'enlèvement n'a pas pu être créée : " + (e.message || e.code || "erreur Firestore"));
+          }
+        }
+
+        message.className = erreursSecondaires.length ? "message info" : "message succes";
+        message.innerHTML = "<strong>Enregistré</strong><br><br>" + site + " — " + flux + " → " + statut + detailCommande;
+        if (erreursSecondaires.length) {
+          message.innerHTML += "<br><small>⚠️ Attention : " + erreursSecondaires.join(", ") + " n'a pas pu être enregistré. Vérifiez les règles Firestore.</small>";
+        }
+        message.style.display = "block";
+        changerCouleurBandeau();
+      } catch(error) {
+        console.error("Erreur écriture Firestore :", error);
+        afficherErreur("Impossible d'enregistrer le flux", error);
+      } finally {
+        boutons.forEach(function(btn) { btn.disabled = false; });
+      }
+    }
+
+    /* CLIC SUR LES BOUTONS DE STATUT */ 
+    boutons.forEach(function(bouton) { 
+      bouton.addEventListener("click", function() { 
+        const user = auth.currentUser; 
+
+        if (!user) { 
+          afficherErreur("Tu n'es pas connecté.", { 
+            code: "auth/not-authenticated", 
+            message: "Reconnecte-toi avant de modifier un flux." 
+          }); 
+          return; 
+        } 
+
+        const flux = bouton.dataset.flux; 
+        const statut = bouton.dataset.statut; 
+
+        if (statut === "presque") {
+          // Ouvre la modale spéciale "Commander vos enlèvements"
+          fluxEnCours = flux;
+          statutEnCours = statut;
+          numeroBenneInput.value = "";
+          numeroBenneInput.style.borderColor = "#CBD1C9";
+          erreurNumeroBenne.style.display = "none";
+          modalEnlevement.style.display = "flex";
+        } else {
+          // Processus direct pour "disponible" et "pleine"
+          enregistrerStatut(flux, statut, false);
+        }
+      }); 
+    }); 
+
+    /* RÉINITIALISATION DE L'ERREUR QUAND L'AGENT TAPE DANS LE CHAMP */
+    numeroBenneInput.addEventListener("input", function() {
+      if (this.value.trim() !== "") {
+        this.style.borderColor = "#CBD1C9";
+        erreurNumeroBenne.style.display = "none";
+      }
+    });
+
+    /* BOUTONS MODALE */
+    btnPasserModal.addEventListener("click", function() {
+      modalEnlevement.style.display = "none";
+      if (fluxEnCours && statutEnCours) {
+        enregistrerStatut(fluxEnCours, statutEnCours, false, "");
+      }
+    });
+
+    btnValiderModal.addEventListener("click", function() {
+      const numBenne = numeroBenneInput.value.trim();
+
+      // Vérification du numéro de benne obligatoire
+      if (!numBenne) {
+        numeroBenneInput.style.borderColor = "var(--alerte-trait)";
+        erreurNumeroBenne.style.display = "block";
+        numeroBenneInput.focus();
+        return;
+      }
+
+      modalEnlevement.style.display = "none";
+      if (fluxEnCours && statutEnCours) {
+        enregistrerStatut(fluxEnCours, statutEnCours, true, numBenne);
+      }
+    });
+
+    /* CHANGEMENT DE SITE */ 
+    siteSelect.addEventListener("change", async function() { 
+      boutons.forEach(function(btn) { 
+        btn.classList.remove("selectionne"); 
+      }); 
+      message.style.display = "none"; 
+      await chargerStatuts(); 
+    }); 
+
+    console.log("✅ agent.html chargé correctement."); 
+  </script> 
+</body> 
+</html>
