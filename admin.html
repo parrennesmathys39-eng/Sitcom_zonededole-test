@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Administration — SICTOM Zone de Dole</title>
+
+  <!-- FONTS -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --vert-nuit: #14342A;
+      --vert-foret: #1B4B3A;
+      --vert-mousse: #4C7A63;
+      --vert-clair: #E8F0EA;
+
+      --fond: #F3F5F2;
+      --papier: #FFFFFF;
+
+      --encre: #1B2420;
+      --encre-douce: #526058;
+      --trait: #E1E5E0;
+
+      --ok-fond: #E6F5EA;
+      --ok-texte: #116B36;
+      --ok-trait: #2EA25B;
+
+      --attn-fond: #FFF4DF;
+      --attn-texte: #8C5300;
+      --attn-trait: #E5A024;
+
+      --alerte-fond: #FCEBEA;
+      --alerte-texte: #B8251B;
+      --alerte-trait: #E5534B;
+
+      --gris-inconnu: #CBD1C9;
+
+      --rayon: 8px;
+      --rayon-lg: 14px;
+      --ombre: 0 2px 8px rgba(20, 35, 25, 0.05), 0 10px 25px rgba(20, 35, 25, 0.05);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--fond);
+      color: var(--encre);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    h1, h2, h3, h4 {
+      font-family: 'Space Grotesk', 'Inter', sans-serif;
+    }
+
+    /* BANDEAU SUPÉRIEUR */
+    header {
+      background: var(--vert-nuit);
+      color: #EFF4F0;
+      padding: 16px 20px;
+      border-bottom: 4px solid var(--vert-mousse);
+      position: relative;
+      z-index: 100;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+    }
+
+    .header-top {
+      max-width: 900px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+    }
+
+    .logo-badge {
+      background: #FFFFFF;
+      padding: 6px 12px;
+      border-radius: var(--rayon);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+      flex-shrink: 0;
+    }
+
+    .logo-badge img {
+      height: 48px;
+      max-height: 52px;
+      max-width: 170px;
+      width: auto;
+      object-fit: contain;
+      display: block;
+    }
+
+    .titres-entete {
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    header p {
+      margin: 2px 0 0;
+      font-size: 13px;
+      color: #C2D1C8;
+      font-weight: 500;
+    }
+
+    .header-user {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13.5px;
+      font-weight: 600;
+      color: #EFF4F0;
+      background: rgba(255, 255, 255, 0.12);
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      white-space: nowrap;
+    }
+
+    .user-dot {
+      width: 8px;
+      height: 8px;
+      background-color: var(--ok-trait);
+      border-radius: 50%;
+      display: inline-block;
+      box-shadow: 0 0 8px var(--ok-trait);
+    }
+
+    .container {
+      max-width: 900px;
+      margin: auto;
+      padding: 16px 16px 60px;
+    }
+
+    /* CONNEXION */
+    #connexion {
+      max-width: 440px;
+      margin: 40px auto;
+      padding: 0 16px;
+    }
+
+    .card {
+      background: var(--papier);
+      padding: 24px;
+      border-radius: var(--rayon-lg);
+      border: 1px solid var(--trait);
+      box-shadow: var(--ombre);
+      margin-bottom: 16px;
+    }
+
+    .card h2 {
+      margin: 0 0 4px;
+      font-size: 19px;
+      font-weight: 700;
+      color: var(--vert-nuit);
+    }
+
+    .card > p {
+      margin: 0 0 16px;
+      font-size: 13px;
+      color: var(--encre-douce);
+      line-height: 1.5;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--encre);
+    }
+
+    input {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid #CBD1C9;
+      border-radius: var(--rayon);
+      font-size: 15px;
+      font-family: inherit;
+      background: var(--papier);
+      color: var(--encre);
+    }
+
+    input:focus {
+      outline: none;
+      border-color: var(--vert-mousse);
+      box-shadow: 0 0 0 3px rgba(76, 122, 99, 0.2);
+    }
+
+    .champ {
+      margin-bottom: 18px;
+    }
+
+    #connexionBtn {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: var(--rayon);
+      background: var(--vert-foret);
+      color: white;
+      font-size: 16px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      margin-top: 6px;
+      transition: background 0.15s ease;
+    }
+
+    #connexionBtn:hover {
+      background: var(--vert-nuit);
+    }
+
+    .message {
+      display: none;
+      margin-top: 18px;
+      padding: 14px 16px;
+      border-radius: var(--rayon);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .erreur { background: var(--alerte-fond); color: var(--alerte-texte); border: 1px solid var(--alerte-trait); }
+    .succes { background: var(--ok-fond); color: var(--ok-texte); border: 1px solid var(--ok-trait); }
+    .info { background: var(--attn-fond); color: var(--attn-texte); border: 1px solid var(--attn-trait); }
+
+    /* BARRE IDENTITÉ ADMIN */
+    .barre-agent {
+      background: var(--papier);
+      padding: 14px 18px;
+      border-radius: var(--rayon-lg);
+      border: 1px solid var(--trait);
+      margin-bottom: 16px;
+      box-shadow: var(--ombre);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .identite-agent {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .avatar-agent {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--vert-clair);
+      color: var(--vert-foret);
+      border: 2px solid var(--vert-mousse);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 15px;
+    }
+
+    .libelle-agent {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--encre-douce);
+    }
+
+    .email {
+      color: var(--encre);
+      font-size: 14.5px;
+      font-weight: 700;
+      margin-top: 1px;
+    }
+
+    .actions-agent {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .bouton-action {
+      border: 1px solid var(--trait);
+      border-radius: var(--rayon);
+      padding: 8px 12px;
+      font-weight: 600;
+      font-size: 13px;
+      font-family: inherit;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .deconnexion { background: #F4F6F3; color: var(--encre); }
+    .bouton-agent-link { background: var(--vert-foret); color: white; border-color: var(--vert-foret); }
+
+    /* SECTION CARTE (REMPLACE LES ACCORDÉONS) */
+    .section-card {
+      background: var(--papier);
+      padding: 20px;
+      border-radius: var(--rayon-lg);
+      border: 1px solid var(--trait);
+      box-shadow: var(--ombre);
+      margin-bottom: 16px;
+    }
+
+    .section-header-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--vert-nuit);
+      margin: 0 0 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .liste-demandes {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .demande-item {
+      background: #FAFCFA;
+      border: 1px solid var(--trait);
+      border-left: 4px solid var(--alerte-trait);
+      padding: 14px 16px;
+      border-radius: var(--rayon);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .demande-info h4 {
+      margin: 0 0 4px;
+      font-size: 14.5px;
+      color: var(--vert-nuit);
+    }
+
+    .demande-meta {
+      font-size: 12.5px;
+      color: var(--encre-douce);
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .code-benne {
+      font-family: 'IBM Plex Mono', monospace;
+      background: #EAEFEA;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+      color: var(--encre);
+    }
+
+    .badge-cutoff {
+      padding: 5px 10px;
+      border-radius: 20px;
+      font-size: 11.5px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    .badge-j1 { background: var(--ok-fond); color: var(--ok-texte); border: 1px solid var(--ok-trait); }
+    .badge-j2 { background: var(--attn-fond); color: var(--attn-texte); border: 1px solid var(--attn-trait); }
+
+    /* STATISTIQUES GLOBALES */
+    .grille-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+      margin-bottom: 20px;
+    }
+
+    .stat-card {
+      background: var(--fond);
+      padding: 14px 16px;
+      border-radius: var(--rayon);
+      border: 1px solid var(--trait);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .stat-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: var(--rayon);
+      background: var(--papier);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    .stat-valeur {
+      font-size: 20px;
+      font-weight: 700;
+      line-height: 1.1;
+    }
+
+    .stat-label {
+      font-size: 11.5px;
+      color: var(--encre-douce);
+      font-weight: 500;
+      margin-top: 2px;
+    }
+
+    /* ÉTAT GLOBAL : BARRES ET LÉGENDE */
+    .bar-legend {
+      display: flex;
+      gap: 14px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--encre-douce);
+      margin: 12px 0 16px;
+      flex-wrap: wrap;
+      background: var(--fond);
+      padding: 10px 14px;
+      border-radius: var(--rayon);
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .site-row-az {
+      padding: 12px 0;
+      border-bottom: 1px solid var(--trait);
+    }
+
+    .site-row-az:last-child {
+      border-bottom: none;
+    }
+
+    .site-header-az {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .site-name-az {
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--vert-nuit);
+    }
+
+    .site-details-az {
+      font-size: 11.5px;
+      color: var(--encre-douce);
+      font-family: 'IBM Plex Mono', monospace;
+    }
+
+    .multi-bar-container {
+      height: 10px;
+      width: 100%;
+      background: var(--gris-inconnu);
+      border-radius: 5px;
+      overflow: hidden;
+      display: flex;
+    }
+
+    .bar-segment {
+      height: 100%;
+      transition: width 0.3s ease;
+    }
+
+    .bar-segment.pleine { background: var(--alerte-trait); }
+    .bar-segment.presque { background: var(--attn-trait); }
+    .bar-segment.disponible { background: var(--ok-trait); }
+    .bar-segment.inconnu { background: var(--gris-inconnu); }
+
+    /* DEUX CLASSEMENTS DISTINCTS */
+    .grille-classements {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      margin-top: 14px;
+    }
+
+    .classement-card {
+      background: var(--fond);
+      padding: 18px;
+      border-radius: var(--rayon);
+      border: 1px solid var(--trait);
+    }
+
+    .classement-card h3 {
+      margin: 0 0 4px;
+      font-size: 15.5px;
+      color: var(--vert-nuit);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .classement-card p {
+      margin: 0 0 14px;
+      font-size: 12.5px;
+      color: var(--encre-douce);
+    }
+
+    .classement-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--trait);
+    }
+
+    .classement-item:last-child {
+      border-bottom: none;
+    }
+
+    .classement-gauche {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .classement-rang {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--papier);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 11px;
+      color: var(--encre-douce);
+    }
+
+    .classement-nom {
+      font-weight: 600;
+      font-size: 13.5px;
+    }
+
+    .badge-count {
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 11.5px;
+      font-family: 'IBM Plex Mono', monospace;
+    }
+
+    .count-rouge { background: var(--alerte-fond); color: var(--alerte-texte); border: 1px solid var(--alerte-trait); }
+    .count-orange { background: var(--attn-fond); color: var(--attn-texte); border: 1px solid var(--attn-trait); }
+
+    /* HISTORIQUE */
+    .liste-historique {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .historique-item {
+      background: var(--fond);
+      border: 1px solid var(--trait);
+      padding: 12px 14px;
+      border-radius: var(--rayon);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .historique-nom {
+      font-weight: 700;
+      font-size: 13.5px;
+      color: var(--vert-nuit);
+    }
+
+    .historique-sub {
+      font-size: 12px;
+      color: var(--encre-douce);
+      margin-top: 2px;
+    }
+
+    .badge-statut {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .statut-traite { background: var(--ok-fond); color: var(--ok-texte); border: 1px solid var(--ok-trait); }
+    .statut-attente { background: var(--attn-fond); color: var(--attn-texte); border: 1px solid var(--attn-trait); }
+
+    /* AGENTS */
+    .agents-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .agent-item {
+      background: var(--fond);
+      border: 1px solid var(--trait);
+      padding: 10px 12px;
+      border-radius: var(--rayon);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .agent-avatar-mini {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: var(--vert-clair);
+      color: var(--vert-foret);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 12.5px;
+    }
+
+    .agent-nom {
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    .agent-role {
+      font-size: 11px;
+      color: var(--encre-douce);
+    }
+
+    @media (max-width: 600px) {
+      .header-top { justify-content: baseline; }
+      .grille-classements { grid-template-columns: 1fr; }
+      .container { padding: 12px 10px 50px; }
+      .section-card { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- BANDEAU SUPÉRIEUR -->
+  <header>
+    <div class="header-top">
+      <div class="logo">
+        <div class="logo-badge">
+          <img src="https://static.wixstatic.com/media/60671e_fa4575df879e40aaa5ad76fe51920ce0~mv2.png/v1/fill/w_354,h_165,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/logo%20horizontal.png" alt="SICTOM Zone de Dole">
+        </div>
+      </div>
+
+      <div class="titres-entete">
+        <h1>Administration</h1>
+        <p>SICTOM Zone de Dole — Pilotage & Suivi</p>
+      </div>
+
+      <div class="header-user">
+        <span class="user-dot"></span>
+        <span id="prenomHeader">Chargement...</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- FORMULAIRE DE CONNEXION -->
+  <div id="connexion">
+    <div class="card">
+      <h2>Connexion Administrateur</h2>
+      <p>Accès réservé au personnel de supervision du SICTOM.</p>
+
+      <div class="champ">
+        <label for="email">Adresse email</label>
+        <input type="email" id="email" placeholder="prenom.nom@sictom-dole.fr">
+      </div>
+
+      <div class="champ">
+        <label for="password">Mot de passe</label>
+        <input type="password" id="password" placeholder="Mot de passe">
+      </div>
+
+      <button id="connexionBtn">Se connecter à l'administration</button>
+      <div id="messageConnexion" class="message"></div>
+    </div>
+  </div>
+
+  <!-- APPLICATION COMPLÈTE -->
+  <div id="application" style="display: none;">
+    <div class="container">
+
+      <!-- BARRE PROFIL ADMIN -->
+      <div class="barre-agent">
+        <div class="identite-agent">
+          <div class="avatar-agent" id="avatarAgent">·</div>
+          <div>
+            <div class="libelle-agent">Administrateur connecté</div>
+            <div id="nomAdmin" class="email"></div>
+          </div>
+        </div>
+
+        <div class="actions-agent">
+          <a href="./agent.html" class="bouton-action bouton-agent-link">👷 Espace Agent</a>
+          <button id="deconnexionBtn" class="bouton-action deconnexion">Déconnexion</button>
+        </div>
+      </div>
+
+      <!-- DEMANDES D'ENLÈVEMENT -->
+      <div class="section-card">
+        <h2 class="section-header-title">📋 Demandes d'enlèvement</h2>
+        <p style="margin:4px 0 0; font-size:12.5px; color:var(--encre-douce);">
+          Ordres de rotation transmis par les agents (Heure limite de traitement : 15h30).
+        </p>
+
+        <div id="listeEnlevements" class="liste-demandes">
+          <div class="message info" style="display:block;">Analyse des demandes d'enlèvement...</div>
+        </div>
+      </div>
+
+      <!-- SECTION 1 : ÉTAT GLOBAL (TRIÉ PAR ROUGE > ORANGE > VERT) -->
+      <div class="section-card">
+        <h2 class="section-header-title">📊 État global des déchèteries (Trié par niveau d'alerte)</h2>
+        
+        <!-- STATISTIQUES GLOBALES -->
+        <div class="grille-stats">
+          <div class="stat-card">
+            <div class="stat-icon">📍</div>
+            <div>
+              <div id="statSites" class="stat-valeur">0</div>
+              <div class="stat-label">Sites suivis</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon">🔴</div>
+            <div>
+              <div id="statPleins" class="stat-valeur">0</div>
+              <div class="stat-label">Bennes pleines</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon">🟠</div>
+            <div>
+              <div id="statPresque" class="stat-valeur">0</div>
+              <div class="stat-label">Presque pleines</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon">🟢</div>
+            <div>
+              <div id="statDispo" class="stat-valeur">0</div>
+              <div class="stat-label">Disponibles</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- LÉGENDE : ROUGE -> ORANGE -> VERT -->
+        <div class="bar-legend">
+          <div class="legend-item"><div class="legend-dot" style="background:var(--alerte-trait)"></div> Pleine</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--attn-trait)"></div> Presque pleine</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--ok-trait)"></div> Disponible</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--gris-inconnu)"></div> Non renseigné</div>
+        </div>
+
+        <div id="sitesAZ">
+          <div class="message info" style="display:block;">Chargement de l'état des sites...</div>
+        </div>
+      </div>
+
+      <!-- SECTION 2 : CLASSEMENTS -->
+      <div class="section-card">
+        <h2 class="section-header-title">🏆 Classement par taux de remplissage</h2>
+        <div class="grille-classements">
+          <div class="classement-card">
+            <h3>🔴 Bennes Pleines</h3>
+            <p>Sites nécessitant des enlèvements prioritaires.</p>
+            <div id="classementPleines">Chargement...</div>
+          </div>
+
+          <div class="classement-card">
+            <h3>🟠 Bennes Presque Pleines</h3>
+            <p>Sites à surveiller pour le prochain tour.</p>
+            <div id="classementPresques">Chargement...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 3 : HISTORIQUE DES CHANGEMENTS DE STATUT -->
+      <div class="section-card">
+        <h2 class="section-header-title">📜 Historique des changements de statut</h2>
+        <p style="font-size:13px; color:var(--encre-douce); margin-top:4px; margin-bottom:10px;">
+          Journal d'activité récent des modifications de statut effectuées sur le terrain.
+        </p>
+        <div id="listeHistorique" class="liste-historique">
+          <div class="message info" style="display:block;">Chargement de l'historique...</div>
+        </div>
+      </div>
+
+      <!-- SECTION 4 : AGENTS -->
+      <div class="section-card">
+        <h2 class="section-header-title">👥 Personnels & Agents enregistrés</h2>
+        <p style="font-size:13px; color:var(--encre-douce); margin-top:4px; margin-bottom:10px;">
+          Utilisateurs et agents rattachés au secteur Dole.
+        </p>
+        <div id="agentsGrid" class="agents-grid">
+          <div class="message info" style="display:block;">Chargement des agents...</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- FIREBASE SDK -->
+  <script src="https://www.gstatic.com/firebasejs/12.16.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.16.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyC85gp3FkHaVZPm7HdFP8jPlvATT-QH9_s",
+      authDomain: "sictom-zone-de-dole-17296.firebaseapp.com",
+      projectId: "sictom-zone-de-dole-17296",
+      storageBucket: "sictom-zone-de-dole-17296.firebasestorage.app",
+      messagingSenderId: "378183859073",
+      appId: "1:378183859073:web:3b347f84a072fb0cb54680"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    const connexion = document.getElementById("connexion");
+    const application = document.getElementById("application");
+    const prenomHeader = document.getElementById("prenomHeader");
+    const nomAdmin = document.getElementById("nomAdmin");
+    const avatarAgent = document.getElementById("avatarAgent");
+
+    let donneesSites = {};
+
+    function formatNomSite(id) {
+      if (!id) return "Inconnu";
+      const noms = {
+        "brevans": "Brevans", "chaussin": "Chaussin", "dampierre": "Dampierre",
+        "dole": "Dole", "mont-sous-vaudrey": "Mont-sous-Vaudrey",
+        "montmirey-le-chateau": "Montmirey-le-Château", "saligney": "Saligney",
+        "tavaux": "Tavaux", "villers-farlay": "Villers-Farlay"
+      };
+      return noms[id] || id.charAt(0).toUpperCase() + id.slice(1);
+    }
+
+    function formatNomFlux(id, data) {
+      if (data && data.nom) return data.nom;
+      const noms = {
+        "bois-a": "🪵 Bois A", "bois-b": "🪵 Bois B", "mobilier": "🛋️ Mobilier",
+        "carton": "📦 Carton", "gravats": "🪨 Gravats", "ferraille": "🔩 Ferraille",
+        "plastique-dur": "🧴 Plastique dur", "tout-venant": "🗑️ Tout-venant", "platre": "🧱 Plâtre"
+      };
+      return noms[id] || id || "Non spécifié";
+    }
+
+    /* RÈGLE CUTOFF DE 15H30 */
+    function evaluerCutoff15h30(timestamp) {
+      if (!timestamp) return { badge: '<span class="badge-cutoff badge-j1">⚡ Demain (J+1)</span>', dateFormatee: 'Non daté' };
+      
+      let dateObj = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+      const heure = dateObj.getHours();
+      const minute = dateObj.getMinutes();
+      const apres15h30 = (heure > 15) || (heure === 15 && minute >= 30);
+
+      const strDate = dateObj.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }) + ' à ' +
+                      dateObj.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+
+      if (apres15h30) {
+        return {
+          badge: '<span class="badge-cutoff badge-j2">⏰ J+2 (Après 15h30)</span>',
+          dateFormatee: strDate
+        };
+      } else {
+        return {
+          badge: '<span class="badge-cutoff badge-j1">⚡ Traitement J+1</span>',
+          dateFormatee: strDate
+        };
+      }
+    }
+
+    /* CHARGER LE PROFIL */
+    async function chargerProfilAdmin(user) {
+      let prenomAffichage = "Admin";
+      let nomComplet = user.email;
+
+      try {
+        const doc = await db.collection("users").doc(user.uid).get();
+        if (doc.exists) {
+          const data = doc.data();
+          if (data.prenom && data.prenom.trim() !== "") {
+            prenomAffichage = data.prenom.trim();
+          } else if (user.email) {
+            prenomAffichage = user.email.split('@')[0];
+          }
+
+          if (data.prenom || data.nom) {
+            nomComplet = [data.prenom, data.nom].filter(Boolean).join(" ");
+          }
+        }
+      } catch(e) {
+        console.error("Erreur profil admin:", e);
+      }
+
+      prenomHeader.textContent = prenomAffichage;
+      nomAdmin.textContent = nomComplet;
+      avatarAgent.textContent = prenomAffichage.charAt(0).toUpperCase();
+    }
+
+    /* DEMANDES D'ENLÈVEMENT — TEMPS RÉEL
+       On écoute toute la collection puis on filtre côté client.
+       Cela évite toute dépendance à un index Firestore et permet
+       d'afficher clairement les erreurs de permissions. */
+    function ecouterDemandesEnlevementTempsReel() {
+      const container = document.getElementById("listeEnlevements");
+
+      db.collection("demandes_enlevement")
+        .onSnapshot(snapshot => {
+          const demandes = [];
+          snapshot.forEach(doc => {
+            const d = doc.data() || {};
+            if (d.statutDemande === "en_attente" || !d.statutDemande) {
+              demandes.push({ id: doc.id, d: d });
+            }
+          });
+
+          demandes.sort((a, b) => {
+            const ta = a.d.dateDemande;
+            const tb = b.d.dateDemande;
+            const da = ta && ta.toDate ? ta.toDate().getTime() : (ta ? new Date(ta).getTime() : 0);
+            const dbb = tb && tb.toDate ? tb.toDate().getTime() : (tb ? new Date(tb).getTime() : 0);
+            return dbb - da;
+          });
+
+          if (demandes.length === 0) {
+            container.innerHTML = '<div class="message succes" style="display:block;">✅ Aucune demande d\'enlèvement en attente.</div>';
+            return;
+          }
+
+          let html = "";
+          demandes.forEach(({ d }) => {
+            const cutoffInfo = evaluerCutoff15h30(d.dateDemande);
+            html += `
+              <div class="demande-item">
+                <div class="demande-info">
+                  <h4>📍 Déchèterie de ${d.site || formatNomSite(d.siteId)}</h4>
+                  <div class="demande-meta">
+                    <span>Flux : <strong>${formatNomFlux(d.flux)}</strong></span>
+                    ${d.numeroBenne ? `<span class="code-benne">Benne ${d.numeroBenne}</span>` : ''}
+                    <span>Par : ${d.agent || 'Agent'} (${cutoffInfo.dateFormatee})</span>
+                  </div>
+                </div>
+                <div>${cutoffInfo.badge}</div>
+              </div>`;
+          });
+          container.innerHTML = html;
+        }, error => {
+          console.error("Erreur écoute demandes d'enlèvement :", error);
+          const detail = error.code === 'permission-denied'
+            ? "Accès refusé par les règles Firestore pour demandes_enlevement."
+            : (error.message || error.code || "Erreur inconnue");
+          container.innerHTML = `<div class="message erreur" style="display:block;">⚠️ Erreur demandes : ${detail}</div>`;
+        });
+    }
+
+    /* ÉTAT GLOBAL : CLASSÉ PAR NB ROUGE -> NB ORANGE -> NB VERT */
+    function afficherEtatGlobal() {
+      const container = document.getElementById("sitesAZ");
+      
+      // Tri dynamique : Bennes pleines (Rouge) puis presque pleines (Orange) puis disponibles (Vert)
+      const sitesTries = Object.keys(donneesSites).sort((a, b) => {
+        const siteA = donneesSites[a];
+        const siteB = donneesSites[b];
+
+        if (siteB.pleins !== siteA.pleins) return siteB.pleins - siteA.pleins;
+        if (siteB.presque !== siteA.presque) return siteB.presque - siteA.presque;
+        if (siteB.disponibles !== siteA.disponibles) return siteB.disponibles - siteA.disponibles;
+        return formatNomSite(a).localeCompare(formatNomSite(b), 'fr');
+      });
+
+      if (sitesTries.length === 0) {
+        container.innerHTML = `<div class="message info" style="display:block;">Aucune donnée enregistrée.</div>`;
+        return;
+      }
+
+      let html = "";
+      sitesTries.forEach(siteId => {
+        const site = donneesSites[siteId];
+        const total = site.total || 1;
+
+        const pctDispo = (site.disponibles / total) * 100;
+        const pctPresque = (site.presque / total) * 100;
+        const pctPleine = (site.pleins / total) * 100;
+        const pctInconnu = (site.inconnus / total) * 100;
+
+        html += `
+          <div class="site-row-az">
+            <div class="site-header-az">
+              <span class="site-name-az">${formatNomSite(siteId)}</span>
+              <span class="site-details-az">🔴 ${site.pleins} pleines · 🟠 ${site.presque} presque · 🟢 ${site.disponibles} dispo</span>
+            </div>
+            <div class="multi-bar-container">
+              <div class="bar-segment pleine" style="width: ${pctPleine}%" title="Pleines: ${site.pleins}"></div>
+              <div class="bar-segment presque" style="width: ${pctPresque}%" title="Presque pleines: ${site.presque}"></div>
+              <div class="bar-segment disponible" style="width: ${pctDispo}%" title="Disponibles: ${site.disponibles}"></div>
+              <div class="bar-segment inconnu" style="width: ${pctInconnu}%" title="Non renseignés: ${site.inconnus}"></div>
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+    }
+
+    /* DEUX CLASSEMENTS DISTINCTS */
+    function afficherDeuxClassements() {
+      const containerPleines = document.getElementById("classementPleines");
+      const containerPresques = document.getElementById("classementPresques");
+
+      const listeSites = Object.keys(donneesSites).map(id => ({
+        id: id,
+        nom: formatNomSite(id),
+        pleins: donneesSites[id].pleins,
+        presque: donneesSites[id].presque
+      }));
+
+      // Classement 1: Bennes Pleines
+      const triePleines = [...listeSites].sort((a, b) => b.pleins - a.pleins);
+      let htmlPleines = "";
+      triePleines.forEach((item, index) => {
+        htmlPleines += `
+          <div class="classement-item">
+            <div class="classement-gauche">
+              <div class="classement-rang">${index + 1}</div>
+              <div class="classement-nom">${item.nom}</div>
+            </div>
+            <div class="badge-count count-rouge">${item.pleins} pleine(s)</div>
+          </div>
+        `;
+      });
+      containerPleines.innerHTML = htmlPleines;
+
+      // Classement 2: Bennes Presque Pleines
+      const triePresques = [...listeSites].sort((a, b) => b.presque - a.presque);
+      let htmlPresques = "";
+      triePresques.forEach((item, index) => {
+        htmlPresques += `
+          <div class="classement-item">
+            <div class="classement-gauche">
+              <div class="classement-rang">${index + 1}</div>
+              <div class="classement-nom">${item.nom}</div>
+            </div>
+            <div class="badge-count count-orange">${item.presque} presque</div>
+          </div>
+        `;
+      });
+      containerPresques.innerHTML = htmlPresques;
+    }
+
+    /* HISTORIQUE DES CHANGEMENTS DE STATUT — TEMPS RÉEL */
+    function ecouterHistoriqueTempsReel() {
+      const container = document.getElementById("listeHistorique");
+
+      db.collection("historique_statuts")
+        .onSnapshot(snapshot => {
+          if (snapshot.empty) {
+            container.innerHTML = '<div class="message info" style="display:block;">Aucun changement de statut récent.</div>';
+            return;
+          }
+
+          const elements = [];
+          snapshot.forEach(doc => {
+            const d = doc.data() || {};
+            const timestamp = d.dateChangement || d.dateDemande || d.date || d.miseAJour;
+            let dateObj = null;
+            let dateStr = "Récemment";
+            if (timestamp) {
+              dateObj = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+              if (!isNaN(dateObj.getTime())) {
+                dateStr = dateObj.toLocaleDateString('fr-FR', {
+                  day: '2-digit', month: '2-digit', year: 'numeric',
+                  hour: '2-digit', minute: '2-digit'
+                });
+              }
+            }
+            elements.push({ d, dateObj, dateStr });
+          });
+
+          elements.sort((a, b) => {
+            const ta = a.dateObj ? a.dateObj.getTime() : 0;
+            const tb = b.dateObj ? b.dateObj.getTime() : 0;
+            return tb - ta;
+          });
+
+          let html = "";
+          elements.slice(0, 50).forEach(({ d, dateStr }) => {
+            const statut = d.nouveauStatut || d.statut || "Modifié";
+            let badgeClass = "statut-attente";
+            if (statut === "pleine" || statut === "urgent") badgeClass = "count-rouge";
+            else if (statut === "presque") badgeClass = "count-orange";
+            else if (statut === "disponible" || statut === "traite") badgeClass = "statut-traite";
+
+            html += `
+              <div class="historique-item">
+                <div>
+                  <div class="historique-nom">${d.site || formatNomSite(d.siteId)} — ${formatNomFlux(d.flux, d)}</div>
+                  <div class="historique-sub">Modifié par ${d.agent || 'Agent'} le ${dateStr}</div>
+                </div>
+                <div><span class="badge-statut ${badgeClass}">${String(statut).toUpperCase()}</span></div>
+              </div>`;
+          });
+          container.innerHTML = html;
+        }, error => {
+          console.error("Erreur écoute historique :", error);
+          const detail = error.code === 'permission-denied'
+            ? "Accès refusé par les règles Firestore pour historique_statuts."
+            : (error.message || error.code || "Erreur inconnue");
+          container.innerHTML = `<div class="message erreur" style="display:block;">⚠️ Erreur historique : ${detail}</div>`;
+        });
+    }
+
+    /* CHARGEMENT DES AGENTS */
+    async function chargerAgents() {
+      const container = document.getElementById("agentsGrid");
+      try {
+        const snapshot = await db.collection("users").get();
+        if (snapshot.empty) {
+          container.innerHTML = '<div>Aucun agent enregistré.</div>';
+          return;
+        }
+
+        let html = "";
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          const prenom = data.prenom || "";
+          const nom = data.nom || "";
+          const nomComplet = [prenom, nom].filter(Boolean).join(" ") || data.email || "Agent";
+          const initiales = prenom ? prenom.charAt(0).toUpperCase() : nomComplet.charAt(0).toUpperCase();
+
+          html += `
+            <div class="agent-item">
+              <div class="agent-avatar-mini">${initiales}</div>
+              <div>
+                <div class="agent-nom">${nomComplet}</div>
+                <div class="agent-role">${data.role === 'admin' ? '👑 Administrateur' : '👷 Agent déchèterie'}</div>
+              </div>
+            </div>
+          `;
+        });
+        container.innerHTML = html;
+      } catch(e) {
+        container.innerHTML = '<div class="message erreur" style="display:block;">Erreur chargement agents.</div>';
+      }
+    }
+
+    /* SYNCHRONISATION EN TEMPS RÉEL */
+    function ecouterFluxTempsReel() {
+      db.collectionGroup("flux").onSnapshot(snapshot => {
+        donneesSites = {};
+        let totalPleins = 0, totalPresque = 0, totalDispo = 0;
+
+        snapshot.forEach(doc => {
+          const pathParts = doc.ref.path.split("/");
+          if (pathParts.length < 4) return;
+          const siteId = pathParts[1];
+          const fluxId = pathParts[3];
+          const data = doc.data();
+
+          if (!donneesSites[siteId]) {
+            donneesSites[siteId] = { flux: [], total: 0, pleins: 0, presque: 0, disponibles: 0, inconnus: 0 };
+          }
+
+          donneesSites[siteId].flux.push({ id: fluxId, data: data });
+          donneesSites[siteId].total++;
+
+          if (data.statut === "pleine") {
+            donneesSites[siteId].pleins++;
+            totalPleins++;
+          } else if (data.statut === "presque") {
+            donneesSites[siteId].presque++;
+            totalPresque++;
+          } else if (data.statut === "disponible") {
+            donneesSites[siteId].disponibles++;
+            totalDispo++;
+          } else {
+            donneesSites[siteId].inconnus++;
+          }
+        });
+
+        document.getElementById("statSites").textContent = Object.keys(donneesSites).length;
+        document.getElementById("statPleins").textContent = totalPleins;
+        document.getElementById("statPresque").textContent = totalPresque;
+        document.getElementById("statDispo").textContent = totalDispo;
+
+        afficherEtatGlobal();
+        afficherDeuxClassements();
+      }, err => {
+        console.error("Erreur écoute des flux:", err);
+      });
+    }
+
+    /* AUTHENTIFICATION */
+    auth.onAuthStateChanged(async user => {
+      if (!user) {
+        connexion.style.display = "block";
+        application.style.display = "none";
+        return;
+      }
+
+      try {
+        const docUser = await db.collection("users").doc(user.uid).get();
+        if (docUser.exists && docUser.data().role === "admin") {
+          connexion.style.display = "none";
+          application.style.display = "block";
+
+          await chargerProfilAdmin(user);
+          ecouterDemandesEnlevementTempsReel();
+          ecouterHistoriqueTempsReel();
+          chargerAgents();
+          ecouterFluxTempsReel();
+        } else {
+          connexion.style.display = "block";
+          application.style.display = "none";
+          const msg = document.getElementById("messageConnexion");
+          msg.className = "message erreur";
+          msg.style.display = "block";
+          msg.textContent = "❌ Accès refusé : privilèges administrateur requis.";
+        }
+      } catch(e) {
+        console.error("Erreur d'authentification:", e);
+      }
+    });
+
+    document.getElementById("connexionBtn").addEventListener("click", async () => {
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+      const msg = document.getElementById("messageConnexion");
+
+      if (!email || !password) {
+        msg.className = "message erreur";
+        msg.style.display = "block";
+        msg.textContent = "Veuillez renseigner votre email et mot de passe.";
+        return;
+      }
+
+      try {
+        await auth.signInWithEmailAndPassword(email, password);
+      } catch(e) {
+        msg.className = "message erreur";
+        msg.style.display = "block";
+        msg.textContent = "Erreur de connexion : " + e.message;
+      }
+    });
+
+    document.getElementById("deconnexionBtn").addEventListener("click", () => {
+      auth.signOut();
+    });
+  </script>
+</body>
+</html>
