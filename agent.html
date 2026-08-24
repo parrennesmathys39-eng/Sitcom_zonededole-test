@@ -1038,18 +1038,37 @@
 
   <script> 
     /* FIREBASE CONFIGURATION */ 
-    const firebaseConfig = { 
-      apiKey: "AIzaSyC85gp3FkHaVZPm7HdFP8jPlvATT-QH9_s", 
-      authDomain: "sictom-zone-de-dole-17296.firebaseapp.com", 
-      projectId: "sictom-zone-de-dole-17296", 
-      storageBucket: "sictom-zone-de-dole-17296.firebasestorage.app", 
-      messagingSenderId: "378183859073", 
-      appId: "1:378183859073:web:3b347f84a072fb0cb54680" 
-    }; 
-     
-    firebase.initializeApp(firebaseConfig); 
-    const auth = firebase.auth(); 
-    const db = firebase.firestore(); 
+   const firebaseConfig = {
+
+    apiKey:
+        "AIzaSyADbz5YPks484OZwdfxFiNnQ8USN5yiiAI",
+
+    authDomain:
+        "sictom-zone-de-dole-test.firebaseapp.com",
+
+    projectId:
+        "sictom-zone-de-dole-test",
+
+    storageBucket:
+        "sictom-zone-de-dole-test.firebasestorage.app",
+
+    messagingSenderId:
+        "1044191548531",
+
+    appId:
+        "1:1044191548531:web:9804279fbf09db964c0606"
+
+};
+
+
+firebase.initializeApp(
+    firebaseConfig
+);
+
+
+const db =
+    firebase.firestore();
+
 
     /* ÉLÉMENTS DOM */ 
     const connexion = document.getElementById("connexion"); 
