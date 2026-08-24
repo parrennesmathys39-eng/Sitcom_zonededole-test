@@ -453,7 +453,7 @@ header::after {
 
     overflow: hidden;
 
-    z-index: 50;
+    z-index: 10000;
 }
 
 .search-suggestions.actif {
@@ -2438,7 +2438,11 @@ const searchSuggestions =
     document.getElementById("search-suggestions");
 
 
-function ouvrirSite(site) {
+function ouvrirSite(site, options) {
+
+    const scroll =
+        !!(options && options.scroll);
+
 
     map.setView(
 
@@ -2452,7 +2456,7 @@ function ouvrirSite(site) {
     );
 
 
-    afficherFiche(site, { scroll: false });
+    afficherFiche(site, { scroll: scroll });
 
 }
 
@@ -2560,7 +2564,7 @@ function afficherSuggestions(sites) {
 
                             masquerSuggestions();
 
-                            ouvrirSite(site);
+                            ouvrirSite(site, { scroll: true });
 
                         }
 
