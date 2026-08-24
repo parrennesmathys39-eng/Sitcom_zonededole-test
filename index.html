@@ -431,6 +431,95 @@ header::after {
 }
 
 
+/* Suggestions de recherche */
+
+.search-suggestions {
+
+    display: none;
+
+    position: absolute;
+
+    left: 8px;
+    right: 8px;
+    top: calc(100% + 6px);
+
+    background: white;
+
+    border: 1px solid var(--bordure);
+
+    border-radius: 13px;
+
+    box-shadow: var(--ombre);
+
+    overflow: hidden;
+
+    z-index: 50;
+}
+
+.search-suggestions.actif {
+
+    display: block;
+}
+
+.search-suggestion {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+    padding: 12px 16px;
+
+    cursor: pointer;
+
+    font-size: 14px;
+
+    color: var(--texte);
+
+    border-bottom: 1px solid var(--bordure);
+
+    transition: background 0.15s ease;
+}
+
+.search-suggestion:last-child {
+
+    border-bottom: none;
+}
+
+.search-suggestion:hover,
+.search-suggestion.surligne {
+
+    background: var(--vert-pale);
+}
+
+.search-suggestion-icon {
+
+    font-size: 16px;
+}
+
+.search-suggestion-texte {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 1px;
+}
+
+.search-suggestion-nom {
+
+    font-weight: 700;
+}
+
+.search-suggestion-adresse {
+
+    font-size: 12px;
+
+    color: var(--texte-secondaire);
+}
+
+
 /* =====================================================
    TITRES
 ===================================================== */
@@ -1374,6 +1463,8 @@ input:focus-visible {
                 placeholder="🔎  Rechercher une déchèterie..."
                 autocomplete="off"
             >
+
+            <div id="search-suggestions" class="search-suggestions"></div>
 
         </div>
 
@@ -2340,38 +2431,171 @@ dechetteries.forEach(
    RECHERCHE
 ===================================================== */
 
-document
+const searchInput =
+    document.getElementById("search");
 
-    .getElementById("search")
-
-    .addEventListener(
-
-        "input",
-
-        function() {
+const searchSuggestions =
+    document.getElementById("search-suggestions");
 
 
-            const recherche =
-                this.value
-                    .toLowerCase()
-                    .trim();
+function ouvrirSite(site) {
+
+    map.setView(
+
+        [
+            site.lat,
+            site.lng
+        ],
+
+        14
+
+    );
 
 
-            if (
-                recherche === ""
-            ) {
+    afficherFiche(site, { scroll: false });
 
-                return;
+}
+
+
+function masquerSuggestions() {
+
+    searchSuggestions.classList.remove("actif");
+
+    searchSuggestions.innerHTML = "";
+
+}
+
+
+function afficherSuggestions(sites) {
+
+    if (
+        !sites ||
+        sites.length === 0
+    ) {
+
+        masquerSuggestions();
+
+        return;
+
+    }
+
+
+    searchSuggestions.innerHTML =
+        sites
+            .map(
+
+                function(site) {
+
+                    return `
+
+                        <div
+                            class="search-suggestion"
+                            data-nom="${site.nom}"
+                        >
+
+                            <span class="search-suggestion-icon">
+                                ♻️
+                            </span>
+
+                            <span class="search-suggestion-texte">
+
+                                <span class="search-suggestion-nom">
+                                    ${site.nom}
+                                </span>
+
+                                <span class="search-suggestion-adresse">
+                                    ${site.adresse}
+                                </span>
+
+                            </span>
+
+                        </div>
+
+                    `;
+
+                }
+
+            )
+            .join("");
+
+
+    searchSuggestions.classList.add("actif");
+
+
+    /* Clic sur une suggestion */
+
+    searchSuggestions
+
+        .querySelectorAll(".search-suggestion")
+
+        .forEach(
+
+            function(el) {
+
+                el.addEventListener(
+
+                    "click",
+
+                    function() {
+
+                        const nom =
+                            el.getAttribute("data-nom");
+
+
+                        const site =
+                            dechetteries.find(
+
+                                function(s) {
+
+                                    return s.nom === nom;
+
+                                }
+
+                            );
+
+
+                        if (site) {
+
+                            searchInput.value = site.nom;
+
+                            masquerSuggestions();
+
+                            ouvrirSite(site);
+
+                        }
+
+                    }
+
+                );
 
             }
 
+        );
 
-            /* =========================
-               RECHERCHE DECHETERIE
-            ========================= */
+}
 
-            const site =
-                dechetteries.find(
+
+searchInput.addEventListener(
+
+    "input",
+
+    function() {
+
+
+        const recherche =
+            this.value
+                .toLowerCase()
+                .trim();
+
+
+        /* =========================
+           SUGGESTIONS (dès 3 lettres)
+        ========================= */
+
+        if (recherche.length >= 3) {
+
+            const resultats =
+                dechetteries.filter(
 
                     function(site) {
 
@@ -2386,87 +2610,172 @@ document
                 );
 
 
-            if (site) {
-
-
-                map.setView(
-
-                    [
-                        site.lat,
-                        site.lng
-                    ],
-
-                    14
-
-                );
-
-
-                afficherFiche(site, { scroll: false });
-
-
-                return;
-
-            }
-
-
-            /* =========================
-               RECHERCHE FLUX
-            ========================= */
-
-            const fluxTrouve =
-                Object.entries(fluxNoms)
-                    .find(
-
-                        function([id, nom]) {
-
-                            return nom
-                                .toLowerCase()
-                                .includes(
-                                    recherche
-                                );
-
-                        }
-
-                    );
-
-
-            if (fluxTrouve) {
-
-                const fluxId =
-                    fluxTrouve[0];
-
-
-                /*
-
-                   On ouvre la première
-                   déchèterie proposant
-                   ce flux.
-
-                */
-
-                const site =
-                    dechetteries[0];
-
-
-                map.setView(
-
-                    [
-                        site.lat,
-                        site.lng
-                    ],
-
-                    11
-
-                );
-
-
-                afficherFiche(site, { scroll: false });
-
-            }
+            afficherSuggestions(resultats);
 
         }
 
-    );
+        else {
+
+            masquerSuggestions();
+
+        }
+
+
+        if (
+            recherche === ""
+        ) {
+
+            return;
+
+        }
+
+
+        /* =========================
+           RECHERCHE DECHETERIE
+        ========================= */
+
+        const site =
+            dechetteries.find(
+
+                function(site) {
+
+                    return site.nom
+                        .toLowerCase()
+                        .includes(
+                            recherche
+                        );
+
+                }
+
+            );
+
+
+        if (site) {
+
+            ouvrirSite(site);
+
+            return;
+
+        }
+
+
+        /* =========================
+           RECHERCHE FLUX
+        ========================= */
+
+        const fluxTrouve =
+            Object.entries(fluxNoms)
+                .find(
+
+                    function([id, nom]) {
+
+                        return nom
+                            .toLowerCase()
+                            .includes(
+                                recherche
+                            );
+
+                    }
+
+                );
+
+
+        if (fluxTrouve) {
+
+            /*
+
+               On ouvre la première
+               déchèterie proposant
+               ce flux.
+
+            */
+
+            const site =
+                dechetteries[0];
+
+
+            map.setView(
+
+                [
+                    site.lat,
+                    site.lng
+                ],
+
+                11
+
+            );
+
+
+            afficherFiche(site, { scroll: false });
+
+        }
+
+    }
+
+);
+
+
+/* Fermer les suggestions si on clique ailleurs */
+
+document.addEventListener(
+
+    "click",
+
+    function(e) {
+
+        if (
+            !searchSuggestions.contains(e.target) &&
+            e.target !== searchInput
+        ) {
+
+            masquerSuggestions();
+
+        }
+
+    }
+
+);
+
+
+/* Réafficher les suggestions au focus si pertinent */
+
+searchInput.addEventListener(
+
+    "focus",
+
+    function() {
+
+        const recherche =
+            this.value
+                .toLowerCase()
+                .trim();
+
+
+        if (recherche.length >= 3) {
+
+            const resultats =
+                dechetteries.filter(
+
+                    function(site) {
+
+                        return site.nom
+                            .toLowerCase()
+                            .includes(
+                                recherche
+                            );
+
+                    }
+
+                );
+
+
+            afficherSuggestions(resultats);
+
+        }
+
+    }
+
+);
 
 
 
@@ -2513,6 +2822,10 @@ if (
 document
     .getElementById("search")
     .value = "";
+
+document
+    .getElementById("search-suggestions")
+    .classList.remove("actif");
 
 window.scrollTo(0, 0);
 
