@@ -434,26 +434,16 @@ header::after {
 /* Suggestions de recherche */
 
 .search-suggestions {
-
     display: none;
-
-    position: absolute;
-
-    left: 8px;
-    right: 8px;
-    top: calc(100% + 6px);
-
+    width: 100%;
+    margin: -10px 0 18px;
     background: white;
-
     border: 1px solid var(--bordure);
-
-    border-radius: 13px;
-
-    box-shadow: var(--ombre);
-
+    border-radius: 14px;
+    box-shadow: var(--ombre-legere);
     overflow: hidden;
-
-    z-index: 10000;
+    position: relative;
+    z-index: 20;
 }
 
 .search-suggestions.actif {
@@ -461,17 +451,32 @@ header::after {
     display: block;
 }
 
+.search-suggestions-title {
+    padding: 10px 16px 8px;
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--texte-secondaire);
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    background: #fafcfb;
+}
+
+.search-suggestion-coord {
+    display: block;
+    margin-top: 2px;
+    color: #7b8780;
+    font-size: 10px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
 .search-suggestion {
-
     display: flex;
-
     align-items: center;
-
-    gap: 10px;
-
+    gap: 12px;
     padding: 12px 16px;
-
     cursor: pointer;
+    border-bottom: 1px solid #eef2ef;
+    transition: background .15s ease;
 
     font-size: 14px;
 
@@ -490,6 +495,10 @@ header::after {
 .search-suggestion:hover,
 .search-suggestion.surligne {
 
+    background: var(--vert-pale);
+}
+
+.search-suggestion:hover {
     background: var(--vert-pale);
 }
 
@@ -1563,8 +1572,6 @@ input:focus-visible {
                 autocomplete="off"
             >
 
-            <div id="search-suggestions" class="search-suggestions"></div>
-
         </div>
 
 
@@ -1582,6 +1589,14 @@ input:focus-visible {
 
     </div>
 
+
+
+    <!-- =================================================
+         SUGGESTIONS DE RECHERCHE
+         Toujours au-dessus de la carte
+    ================================================= -->
+
+    <div id="search-suggestions" class="search-suggestions"></div>
 
 
     <!-- =================================================
@@ -1799,7 +1814,7 @@ const map =
 
         [47.09, 5.49],
 
-        12
+        14
 
     );
 
@@ -2583,7 +2598,7 @@ function ouvrirSite(site, options) {
             site.lng
         ],
 
-        14
+        17
 
     );
 
@@ -2602,113 +2617,76 @@ function masquerSuggestions() {
 }
 
 
+function normaliserRecherche(texte) {
+    return (texte || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .trim();
+}
+
+function trouverCorrespondances(recherche) {
+    const q = normaliserRecherche(recherche);
+    if (!q) return [];
+
+    return dechetteries
+        .map(function(site) {
+            const nom = normaliserRecherche(site.nom);
+            const adresse = normaliserRecherche(site.adresse);
+            let score = 0;
+
+            if (nom === q) score = 100;
+            else if (nom.startsWith(q)) score = 80;
+            else if (nom.includes(q)) score = 60;
+            else if (adresse.includes(q)) score = 30;
+
+            return { site: site, score: score };
+        })
+        .filter(function(item) { return item.score > 0; })
+        .sort(function(a,b) {
+            return b.score - a.score || a.site.nom.localeCompare(b.site.nom, "fr");
+        })
+        .map(function(item) { return item.site; });
+}
+
 function afficherSuggestions(sites) {
-
-    if (
-        !sites ||
-        sites.length === 0
-    ) {
-
+    if (!sites || sites.length === 0) {
         masquerSuggestions();
-
         return;
-
     }
 
-
-    searchSuggestions.innerHTML =
-        sites
-            .map(
-
-                function(site) {
-
-                    return `
-
-                        <div
-                            class="search-suggestion"
-                            data-nom="${site.nom}"
-                        >
-
-                            <span class="search-suggestion-icon">
-                                ♻️
-                            </span>
-
-                            <span class="search-suggestion-texte">
-
-                                <span class="search-suggestion-nom">
-                                    ${site.nom}
-                                </span>
-
-                                <span class="search-suggestion-adresse">
-                                    ${site.adresse}
-                                </span>
-
-                            </span>
-
-                        </div>
-
-                    `;
-
-                }
-
-            )
-            .join("");
-
+    searchSuggestions.innerHTML = `
+        <div class="search-suggestions-title">
+            Déchèteries correspondantes
+        </div>
+    ` + sites.map(function(site) {
+        return `
+            <div class="search-suggestion" data-nom="${site.nom}">
+                <span class="search-suggestion-icon">♻️</span>
+                <span class="search-suggestion-texte">
+                    <span class="search-suggestion-nom">${site.nom}</span>
+                    <span class="search-suggestion-adresse">📍 ${site.adresse}</span>
+                    <span class="search-suggestion-coord">${site.lat.toFixed(6)}, ${site.lng.toFixed(6)}</span>
+                </span>
+            </div>
+        `;
+    }).join("");
 
     searchSuggestions.classList.add("actif");
 
-
-    /* Clic sur une suggestion */
-
-    searchSuggestions
-
-        .querySelectorAll(".search-suggestion")
-
-        .forEach(
-
-            function(el) {
-
-                el.addEventListener(
-
-                    "click",
-
-                    function() {
-
-                        const nom =
-                            el.getAttribute("data-nom");
-
-
-                        const site =
-                            dechetteries.find(
-
-                                function(s) {
-
-                                    return s.nom === nom;
-
-                                }
-
-                            );
-
-
-                        if (site) {
-
-                            searchInput.value = site.nom;
-
-                            masquerSuggestions();
-
-                            ouvrirSite(site, { scroll: true });
-
-                        }
-
-                    }
-
-                );
-
-            }
-
-        );
-
+    searchSuggestions.querySelectorAll(".search-suggestion").forEach(function(el) {
+        el.addEventListener("click", function() {
+            const site = dechetteries.find(function(s) {
+                return s.nom === el.getAttribute("data-nom");
+            });
+            if (!site) return;
+            searchInput.value = site.nom;
+            masquerSuggestions();
+            ouvrirSite(site, { scroll: false });
+        });
+    });
 }
+
 
 
 /* =====================================================
@@ -2795,48 +2773,19 @@ afficherChoixDechetteries(
 ===================================================== */
 
 searchInput.addEventListener(
-
     "input",
-
     function() {
+        const recherche = this.value.trim();
 
-        const recherche =
-            this.value
-                .toLowerCase()
-                .trim();
-
-
-        /*
-           Pendant la saisie, la carte ne bouge plus.
-           Elle ne se déplace que lors d'une sélection
-           ou d'une validation avec Entrée.
-        */
-
+        // La carte ne bouge JAMAIS pendant la frappe.
         if (recherche.length >= 1) {
-
-            const resultats =
-                dechetteries.filter(function(site) {
-
-                    return site.nom
-                        .toLowerCase()
-                        .includes(recherche);
-
-                });
-
-
-            afficherSuggestions(resultats);
-
-        }
-
-        else {
-
+            afficherSuggestions(trouverCorrespondances(recherche));
+        } else {
             masquerSuggestions();
-
         }
-
     }
-
 );
+
 
 
 /* =====================================================
