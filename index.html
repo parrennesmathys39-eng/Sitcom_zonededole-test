@@ -602,6 +602,105 @@ header::after {
     overflow: hidden;
 }
 
+/* =====================================================
+   SÉLECTION DIRECTE DES DÉCHÈTERIES
+===================================================== */
+
+.dechetterie-selection {
+    margin: 0 0 16px;
+    background: white;
+    border: 1px solid var(--bordure);
+    border-radius: 16px;
+    padding: 13px;
+    box-shadow: var(--ombre-legere);
+}
+
+.dechetterie-selection-header {
+    margin-bottom: 10px;
+}
+
+.dechetterie-selection-header strong {
+    display: block;
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.dechetterie-selection-header span {
+    display: block;
+    margin-top: 2px;
+    color: var(--texte-secondaire);
+    font-size: 11px;
+}
+
+.dechetterie-choices {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.dechetterie-choice {
+    width: 100%;
+    min-height: 48px;
+    padding: 9px 11px;
+    border: 1px solid var(--bordure);
+    border-radius: 11px;
+    background: #f8faf9;
+    color: var(--texte);
+    text-align: left;
+    cursor: pointer;
+    font: inherit;
+    transition: background .15s ease, border-color .15s ease, transform .15s ease;
+}
+
+.dechetterie-choice:hover,
+.dechetterie-choice.actif {
+    background: var(--vert-pale);
+    border-color: #b9dfc8;
+}
+
+.dechetterie-choice:active {
+    transform: scale(.99);
+}
+
+.dechetterie-choice-nom {
+    display: block;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.dechetterie-choice-adresse {
+    display: block;
+    margin-top: 2px;
+    color: var(--texte-secondaire);
+    font-size: 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.coordonnees {
+    margin-top: 8px;
+    color: var(--texte-secondaire);
+    font-size: 11px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+@media (max-width: 700px) {
+    .dechetterie-selection {
+        padding: 11px;
+    }
+
+    .dechetterie-choices {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 380px) {
+    .dechetterie-choices {
+        grid-template-columns: 1fr;
+    }
+}
+
 
 /* =====================================================
    LEAFLET
@@ -1510,6 +1609,29 @@ input:focus-visible {
     </div>
 
 
+
+    <!-- =================================================
+         SÉLECTION RAPIDE DES DÉCHÈTERIES
+    ================================================= -->
+
+    <div class="dechetterie-selection">
+
+        <div class="dechetterie-selection-header">
+            <div>
+                <strong>Choisir une déchèterie</strong>
+                <span>Sélectionnez directement un site sans passer par la carte.</span>
+            </div>
+        </div>
+
+        <div id="dechetterie-choices" class="dechetterie-choices"></div>
+
+    </div>
+
+
+    <!-- =================================================
+         CARTE
+    ================================================= -->
+
     <div class="map-card">
 
         <div id="map"></div>
@@ -1677,7 +1799,7 @@ const map =
 
         [47.09, 5.49],
 
-        10
+        12
 
     );
 
@@ -1691,7 +1813,7 @@ L.tileLayer(
         attribution:
             "&copy; OpenStreetMap contributors",
 
-        maxZoom: 19
+        maxZoom: 20
 
     }
 
@@ -2017,6 +2139,10 @@ async function afficherFiche(site, options) {
 
                         📍 ${site.adresse}
 
+                    </div>
+
+                    <div class="coordonnees">
+                        📍 ${site.lat.toFixed(6)}, ${site.lng.toFixed(6)}
                     </div>
 
 
@@ -2394,6 +2520,12 @@ dechetteries.forEach(
 
             📍 ${site.adresse}
 
+            <br>
+
+            <span style="color:#68746d;font-size:11px;">
+                Coordonnées : ${site.lat.toFixed(6)}, ${site.lng.toFixed(6)}
+            </span>
+
             <br><br>
 
             <span style="
@@ -2579,12 +2711,94 @@ function afficherSuggestions(sites) {
 }
 
 
+/* =====================================================
+   SÉLECTION DIRECTE
+===================================================== */
+
+const dechetterieChoices =
+    document.getElementById("dechetterie-choices");
+
+
+function afficherChoixDechetteries(sites) {
+
+    if (!dechetterieChoices) return;
+
+    dechetterieChoices.innerHTML =
+        sites.map(function(site) {
+
+            return `
+                <button
+                    type="button"
+                    class="dechetterie-choice"
+                    data-nom="${site.nom}"
+                >
+                    <span class="dechetterie-choice-nom">
+                        ♻️ ${site.nom}
+                    </span>
+
+                    <span class="dechetterie-choice-adresse">
+                        ${site.adresse}
+                    </span>
+                </button>
+            `;
+
+        }).join("");
+
+
+    dechetterieChoices
+        .querySelectorAll(".dechetterie-choice")
+        .forEach(function(button) {
+
+            button.addEventListener(
+                "click",
+                function() {
+
+                    const site =
+                        dechetteries.find(function(s) {
+                            return s.nom === button.dataset.nom;
+                        });
+
+                    if (!site) return;
+
+                    searchInput.value = site.nom;
+                    masquerSuggestions();
+
+                    dechetterieChoices
+                        .querySelectorAll(".dechetterie-choice")
+                        .forEach(function(b) {
+                            b.classList.toggle(
+                                "actif",
+                                b === button
+                            );
+                        });
+
+                    ouvrirSite(
+                        site,
+                        { scroll: false }
+                    );
+
+                }
+            );
+
+        });
+
+}
+
+
+afficherChoixDechetteries(
+    dechetteries
+);
+
+
+/* =====================================================
+   RECHERCHE
+===================================================== */
+
 searchInput.addEventListener(
 
     "input",
 
     function() {
-
 
         const recherche =
             this.value
@@ -2592,26 +2806,22 @@ searchInput.addEventListener(
                 .trim();
 
 
-        /* =========================
-           SUGGESTIONS (dès 3 lettres)
-        ========================= */
+        /*
+           Pendant la saisie, la carte ne bouge plus.
+           Elle ne se déplace que lors d'une sélection
+           ou d'une validation avec Entrée.
+        */
 
-        if (recherche.length >= 3) {
+        if (recherche.length >= 1) {
 
             const resultats =
-                dechetteries.filter(
+                dechetteries.filter(function(site) {
 
-                    function(site) {
+                    return site.nom
+                        .toLowerCase()
+                        .includes(recherche);
 
-                        return site.nom
-                            .toLowerCase()
-                            .includes(
-                                recherche
-                            );
-
-                    }
-
-                );
+                });
 
 
             afficherSuggestions(resultats);
@@ -2624,93 +2834,91 @@ searchInput.addEventListener(
 
         }
 
+    }
 
-        if (
-            recherche === ""
-        ) {
-
-            return;
-
-        }
+);
 
 
-        /* =========================
-           RECHERCHE DECHETERIE
-        ========================= */
+/* =====================================================
+   VALIDATION CLAVIER
+===================================================== */
+
+searchInput.addEventListener(
+
+    "keydown",
+
+    function(e) {
+
+        if (e.key !== "Enter") return;
+
+        const recherche =
+            this.value
+                .toLowerCase()
+                .trim();
+
+        if (!recherche) return;
+
 
         const site =
-            dechetteries.find(
+            dechetteries.find(function(site) {
 
-                function(site) {
+                return site.nom
+                    .toLowerCase()
+                    .includes(recherche);
 
-                    return site.nom
-                        .toLowerCase()
-                        .includes(
-                            recherche
-                        );
-
-                }
-
-            );
+            });
 
 
         if (site) {
 
-            ouvrirSite(site);
+            e.preventDefault();
+
+            searchInput.value = site.nom;
+
+            masquerSuggestions();
+
+            ouvrirSite(
+                site,
+                { scroll: false }
+            );
 
             return;
 
         }
 
 
-        /* =========================
-           RECHERCHE FLUX
-        ========================= */
+        /* Recherche de flux conservée */
 
         const fluxTrouve =
             Object.entries(fluxNoms)
-                .find(
+                .find(function([id, nom]) {
 
-                    function([id, nom]) {
+                    return nom
+                        .toLowerCase()
+                        .includes(recherche);
 
-                        return nom
-                            .toLowerCase()
-                            .includes(
-                                recherche
-                            );
-
-                    }
-
-                );
+                });
 
 
         if (fluxTrouve) {
 
-            /*
+            e.preventDefault();
 
-               On ouvre la première
-               déchèterie proposant
-               ce flux.
-
-            */
-
-            const site =
+            const siteFlux =
                 dechetteries[0];
 
-
             map.setView(
-
                 [
-                    site.lat,
-                    site.lng
+                    siteFlux.lat,
+                    siteFlux.lng
                 ],
-
-                11
-
+                12
             );
 
-
-            afficherFiche(site, { scroll: false });
+            afficherFiche(
+                siteFlux,
+                { scroll: false }
+            );
 
         }
 
@@ -2755,7 +2963,7 @@ searchInput.addEventListener(
                 .trim();
 
 
-        if (recherche.length >= 3) {
+        if (recherche.length >= 1) {
 
             const resultats =
                 dechetteries.filter(
