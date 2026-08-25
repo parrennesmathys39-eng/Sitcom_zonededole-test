@@ -1752,8 +1752,8 @@ const dechetteries = [
 
     {
         nom: "Dole",
-        lat: 47.092,
-        lng: 5.486,
+        lat: 47.0823612,
+        lng: 5.4899492,
         adresse: "Rue Costes et Bellonte",
         ville: "Dole",
         type: "Déchèterie",
@@ -1772,8 +1772,8 @@ const dechetteries = [
 
     {
         nom: "Tavaux",
-        lat: 47.044,
-        lng: 5.405,
+        lat: 47.0446751,
+        lng: 5.4200936,
         adresse: "10 Rue du Luxembourg",
         ville: "Tavaux",
         type: "Déchèterie",
@@ -1792,8 +1792,8 @@ const dechetteries = [
 
     {
         nom: "Dampierre",
-        lat: 47.151,
-        lng: 5.675,
+        lat: 47.1560574,
+        lng: 5.7400419,
         adresse: "6 Chemin du Tissage",
         ville: "Dampierre",
         type: "Déchèterie",
@@ -1802,8 +1802,8 @@ const dechetteries = [
 
     {
         nom: "Mont-sous-Vaudrey",
-        lat: 46.999,
-        lng: 5.584,
+        lat: 46.9838826,
+        lng: 5.5921976,
         adresse: "18 Route de Dole",
         ville: "Mont-sous-Vaudrey",
         type: "Déchèterie",
@@ -1812,8 +1812,8 @@ const dechetteries = [
 
     {
         nom: "Montmirey-le-Château",
-        lat: 47.217,
-        lng: 5.609,
+        lat: 47.21743,
+        lng: 5.528478,
         adresse: "Le Charme",
         ville: "Montmirey-le-Château",
         type: "Déchèterie",
@@ -1822,8 +1822,8 @@ const dechetteries = [
 
     {
         nom: "Saligney",
-        lat: 47.208,
-        lng: 5.653,
+        lat: 47.2193802,
+        lng: 5.6399594,
         adresse: "Rue Principale",
         ville: "Saligney",
         type: "Déchèterie",
@@ -1832,8 +1832,8 @@ const dechetteries = [
 
     {
         nom: "Villers-Farlay",
-        lat: 46.984,
-        lng: 5.718,
+        lat: 47.000841,
+        lng: 5.750648,
         adresse: "Rue du Val d'Amour",
         ville: "Villers-Farlay",
         type: "Déchèterie",
@@ -2403,8 +2403,11 @@ dechetteries.forEach(installerMarqueur);
 
 /* Les anciennes positions n'avaient que 3 décimales. On géocode
    l'adresse réelle pour placer chaque marqueur précisément. */
+const positionsFiables = new Set(['Dole','Tavaux','Dampierre','Mont-sous-Vaudrey','Montmirey-le-Château','Saligney','Villers-Farlay']);
+
 async function geocoderDechetterie(site) {
-    const adresse = `Déchèterie ${site.nom}, ${site.adresse}, ${site.ville}, France`;
+    if (positionsFiables.has(site.nom)) return;
+    const adresse = `${site.adresse}, ${site.ville}, France`;
     const url = "https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&countrycodes=fr&q=" + encodeURIComponent(adresse);
     try {
         const response = await fetch(url, { headers: { "Accept": "application/json" } });
@@ -2459,7 +2462,7 @@ function ouvrirSite(site, options) {
             site.lng
         ],
 
-        18
+        19
 
     );
 
@@ -2537,7 +2540,7 @@ function afficherSuggestions(sites) {
             if (!site) return;
             searchInput.value = site.nom;
             masquerSuggestions();
-            ouvrirSite(site, { scroll: false });
+            ouvrirSite(site, { scroll: true });
         });
     });
 }
@@ -2598,7 +2601,7 @@ searchInput.addEventListener(
 
             ouvrirSite(
                 site,
-                { scroll: false }
+                { scroll: true }
             );
 
             return;
@@ -2685,19 +2688,7 @@ searchInput.addEventListener(
         if (recherche.length >= 1) {
 
             const resultats =
-                dechetteries.filter(
-
-                    function(site) {
-
-                        return site.nom
-                            .toLowerCase()
-                            .includes(
-                                recherche
-                            );
-
-                    }
-
-                );
+                trouverCorrespondances(recherche);
 
 
             afficherSuggestions(resultats);
