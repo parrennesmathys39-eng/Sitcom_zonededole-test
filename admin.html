@@ -807,7 +807,7 @@
               Ordres de rotation transmis par les agents sur les dernières 48h (Heure limite de traitement : 15h30).
             </p>
           </div>
-          <button id="btnTelechargerEnlevements" class="bouton-action bouton-telecharger">⬇️ Télécharger (CSV)</button>
+          <button id="btnTelechargerEnlevements" class="bouton-action bouton-telecharger">⬇️ Télécharger (PDF)</button>
         </div>
 
         <div id="listeEnlevements" class="liste-demandes">
@@ -894,7 +894,7 @@
               Journal d'activité des modifications de statut effectuées sur le terrain, sur les dernières 24 heures.
             </p>
           </div>
-          <button id="btnTelechargerHistorique" class="bouton-action bouton-telecharger">⬇️ Télécharger (CSV)</button>
+          <button id="btnTelechargerHistorique" class="bouton-action bouton-telecharger">⬇️ Télécharger (PDF)</button>
         </div>
         <div id="listeHistorique" class="liste-historique">
           <div class="message info" style="display:block;">Chargement de l'historique...</div>
@@ -928,6 +928,10 @@
   <script src="https://www.gstatic.com/firebasejs/12.16.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/12.16.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore-compat.js"></script>
+
+  <!-- GÉNÉRATION PDF (export des listes) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 
   <script>
 const firebaseConfig = {
@@ -1006,29 +1010,45 @@ const auth = firebase.auth();
         .replace(/"/g, "&quot;");
     }
 
-    /* GÉNÉRATION ET TÉLÉCHARGEMENT D'UN FICHIER CSV (lien de téléchargement) */
-    function telechargerCSV(nomFichier, colonnes, lignes) {
-      const sep = ";";
-      const echapperCSV = (val) => {
-        const str = val === undefined || val === null ? "" : String(val);
-        if (str.includes(sep) || str.includes('"') || str.includes("\n")) {
-          return '"' + str.replace(/"/g, '""') + '"';
-        }
-        return str;
-      };
-      const contenu = "\uFEFF" + [colonnes, ...lignes]
-        .map(ligne => ligne.map(echapperCSV).join(sep))
-        .join("\n");
+    /* GÉNÉRATION ET TÉLÉCHARGEMENT D'UN FICHIER PDF (lien de téléchargement) */
+    function telechargerPDF(nomFichier, titre, sousTitre, colonnes, lignes) {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation: "landscape", unit: "pt", format: "a4" });
 
-      const blob = new Blob([contenu], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const lien = document.createElement("a");
-      lien.href = url;
-      lien.download = nomFichier;
-      document.body.appendChild(lien);
-      lien.click();
-      document.body.removeChild(lien);
-      setTimeout(() => URL.revokeObjectURL(url), 2000);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(15);
+      doc.setTextColor(20, 52, 42); // vert-nuit
+      doc.text(titre, 40, 42);
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      doc.setTextColor(82, 96, 88); // encre-douce
+      doc.text(sousTitre, 40, 60);
+
+      doc.autoTable({
+        head: [colonnes],
+        body: lignes.length ? lignes : [colonnes.map(() => "—")],
+        startY: 76,
+        styles: { font: "helvetica", fontSize: 9, cellPadding: 6, overflow: "linebreak", valign: "middle" },
+        headStyles: { fillColor: [27, 75, 58], textColor: [255, 255, 255], fontStyle: "bold" },
+        alternateRowStyles: { fillColor: [248, 250, 248] },
+        margin: { left: 40, right: 40 }
+      });
+
+      const nbPages = doc.internal.getNumberOfPages();
+      for (let i = 1; i <= nbPages; i++) {
+        doc.setPage(i);
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(8);
+        doc.setTextColor(150, 150, 150);
+        doc.text(
+          `SICTOM Zone de Dole — Généré le ${new Date().toLocaleString('fr-FR')} — Page ${i}/${nbPages}`,
+          40,
+          doc.internal.pageSize.getHeight() - 20
+        );
+      }
+
+      doc.save(nomFichier);
     }
 
     function horodatageFichier() {
@@ -1496,20 +1516,26 @@ const auth = firebase.auth();
 
     /* TÉLÉCHARGEMENT — DEMANDES D'ENLÈVEMENT (48H) */
     document.getElementById("btnTelechargerEnlevements").addEventListener("click", () => {
-      const colonnes = ["Site", "Flux", "Numéro de benne", "Message", "Agent", "Date de la demande", "Traitement"];
+      const colonnes = ["Site", "Flux", "N° benne", "Message", "Agent", "Date de la demande", "Traitement"];
       const lignes = derniereListeEnlevements.map(({ d }) => {
         const cutoffInfo = evaluerCutoff15h30(d.dateDemande);
         return [
           d.site || formatNomSite(d.siteId),
           formatNomFlux(d.flux),
-          d.numeroBenne || "",
-          d.message || "",
+          d.numeroBenne || "—",
+          d.message || "—",
           d.agent || "Agent",
           cutoffInfo.dateFormatee,
           cutoffInfo.badge.includes("J+2") ? "J+2 (après 15h30)" : "J+1"
         ];
       });
-      telechargerCSV(`demandes-enlevement-48h_${horodatageFichier()}.csv`, colonnes, lignes);
+      telechargerPDF(
+        `demandes-enlevement-48h_${horodatageFichier()}.pdf`,
+        "Demandes d'enlèvement — dernières 48h",
+        `SICTOM Zone de Dole · ${lignes.length} demande(s) en attente`,
+        colonnes,
+        lignes
+      );
     });
 
     /* TÉLÉCHARGEMENT — HISTORIQUE DES CHANGEMENTS (24H) */
@@ -1525,7 +1551,13 @@ const auth = firebase.auth();
           dateStr
         ];
       });
-      telechargerCSV(`historique-statuts-24h_${horodatageFichier()}.csv`, colonnes, lignes);
+      telechargerPDF(
+        `historique-statuts-24h_${horodatageFichier()}.pdf`,
+        "Historique des changements de statut — dernières 24h",
+        `SICTOM Zone de Dole · ${lignes.length} changement(s) enregistré(s)`,
+        colonnes,
+        lignes
+      );
     });
   </script>
 </body>
