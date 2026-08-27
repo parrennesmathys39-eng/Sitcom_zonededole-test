@@ -1024,6 +1024,11 @@
         </div>
       </div>
 
+      <div class="champ">
+        <label for="messageBenne">Message pour l'administration <span style="font-weight: 500; color: var(--encre-douce); text-transform: none; letter-spacing: 0;">(facultatif)</span></label>
+        <textarea id="messageBenne" rows="3" placeholder="ex: Accès difficile, prévoir un camion-grue..." style="width:100%; padding:12px 14px; border:1.5px solid #CBD1C9; border-radius:var(--rayon); font-size:15px; font-family:inherit; color:var(--encre); resize:vertical;"></textarea>
+      </div>
+
       <div class="modal-actions">
         <button id="btnPasserModal" class="btn-modal btn-modal-secondaire">Passer sans commande</button>
         <button id="btnValiderModal" class="btn-modal btn-modal-primaire">Valider & Commander</button>
@@ -1092,6 +1097,7 @@ const auth = firebase.auth();
     /* MODALE ENLÈVEMENT */
     const modalEnlevement = document.getElementById("modalEnlevement");
     const numeroBenneInput = document.getElementById("numeroBenne");
+    const messageBenneInput = document.getElementById("messageBenne");
     const erreurNumeroBenne = document.getElementById("erreurNumeroBenne");
     const btnPasserModal = document.getElementById("btnPasserModal");
     const btnValiderModal = document.getElementById("btnValiderModal");
@@ -1280,7 +1286,7 @@ const auth = firebase.auth();
     /* LOGIQUE D'ENREGISTREMENT FLUX — ROBUSTE
        Chaque opération Firestore est indépendante : une erreur dans
        l'historique ne bloque jamais une demande d'enlèvement. */
-    async function enregistrerStatut(flux, statut, avecCommande = false, numeroBenne = "") {
+    async function enregistrerStatut(flux, statut, avecCommande = false, numeroBenne = "", messageBenne = "") {
       const user = auth.currentUser;
       if (!user) return;
 
@@ -1338,6 +1344,8 @@ const auth = firebase.auth();
           const numero = String(numeroBenne || "").trim();
           if (!numero) throw new Error("Le numéro de benne est obligatoire.");
 
+          const messageNettoye = String(messageBenne || "").trim();
+
           try {
             await db.collection("demandes_enlevement").add({
               site: site,
@@ -1345,6 +1353,7 @@ const auth = firebase.auth();
               flux: flux,
               statut: statut,
               numeroBenne: numero,
+              message: messageNettoye,
               agent: nomAgent,
               agentEmail: user.email || "",
               statutDemande: "en_attente",
@@ -1388,16 +1397,19 @@ const auth = firebase.auth();
         const flux = bouton.dataset.flux; 
         const statut = bouton.dataset.statut; 
 
-        if (statut === "presque") {
+        if (statut === "presque" || statut === "pleine") {
           // Ouvre la modale spéciale "Commander vos enlèvements"
+          // (déclenchée en passant à "presque pleine", et aussi en passant à
+          // "pleine" — que ce soit depuis "disponible"/vide ou depuis "presque")
           fluxEnCours = flux;
           statutEnCours = statut;
           numeroBenneInput.value = "";
           numeroBenneInput.style.borderColor = "#CBD1C9";
           erreurNumeroBenne.style.display = "none";
+          messageBenneInput.value = "";
           modalEnlevement.style.display = "flex";
         } else {
-          // Processus direct pour "disponible" et "pleine"
+          // Processus direct pour "disponible"
           enregistrerStatut(flux, statut, false);
         }
       }); 
@@ -1415,12 +1427,13 @@ const auth = firebase.auth();
     btnPasserModal.addEventListener("click", function() {
       modalEnlevement.style.display = "none";
       if (fluxEnCours && statutEnCours) {
-        enregistrerStatut(fluxEnCours, statutEnCours, false, "");
+        enregistrerStatut(fluxEnCours, statutEnCours, false, "", "");
       }
     });
 
     btnValiderModal.addEventListener("click", function() {
       const numBenne = numeroBenneInput.value.trim();
+      const msgBenne = messageBenneInput.value.trim();
 
       // Vérification du numéro de benne obligatoire
       if (!numBenne) {
@@ -1432,7 +1445,7 @@ const auth = firebase.auth();
 
       modalEnlevement.style.display = "none";
       if (fluxEnCours && statutEnCours) {
-        enregistrerStatut(fluxEnCours, statutEnCours, true, numBenne);
+        enregistrerStatut(fluxEnCours, statutEnCours, true, numBenne, msgBenne);
       }
     });
 
