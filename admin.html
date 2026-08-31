@@ -912,7 +912,7 @@
               Ordres de rotation transmis par les agents, affichés jusqu'à leur traitement.
             </p>
           </div>
-          <button id="btnTelechargerEnlevements" class="bouton-action bouton-telecharger">⬇️ Télécharger (PDF)</button>
+          <button id="btnTelechargerEnlevements" class="bouton-action bouton-telecharger">⬇️ Télécharger (Excel)</button>
         </div>
 
         <div id="listeEnlevements" class="liste-demandes">
@@ -999,7 +999,7 @@
               Journal d'activité des modifications de statut effectuées sur le terrain, sur les dernières 24 heures.
             </p>
           </div>
-          <button id="btnTelechargerHistorique" class="bouton-action bouton-telecharger">⬇️ Télécharger (PDF)</button>
+          <button id="btnTelechargerHistorique" class="bouton-action bouton-telecharger">⬇️ Télécharger (Excel)</button>
         </div>
         <div id="listeHistorique" class="liste-historique">
           <div class="message info" style="display:block;">Chargement de l'historique...</div>
@@ -1052,6 +1052,7 @@
   <!-- GÉNÉRATION PDF (export des listes) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
   <script>
 const firebaseConfig = {
@@ -1132,7 +1133,48 @@ const auth = firebase.auth();
         .replace(/"/g, "&quot;");
     }
 
-    /* GÉNÉRATION ET TÉLÉCHARGEMENT D'UN FICHIER PDF (lien de téléchargement) */
+    /* FORMATAGE DATE FIRESTORE / JS — gère aussi les timestamps serverTimestamp encore nuls */
+    function convertirDate(value) {
+      if (!value) return null;
+      try {
+        if (value.toDate && typeof value.toDate === "function") {
+          const d = value.toDate();
+          return isNaN(d.getTime()) ? null : d;
+        }
+        const d = value instanceof Date ? value : new Date(value);
+        return isNaN(d.getTime()) ? null : d;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function formatDateDemande(value) {
+      const date = convertirDate(value);
+      if (!date) return "Date en attente…";
+      return date.toLocaleDateString("fr-FR", {
+        day: "2-digit", month: "2-digit", year: "numeric"
+      }) + " à " + date.toLocaleTimeString("fr-FR", {
+        hour: "2-digit", minute: "2-digit"
+      });
+    }
+
+    /* EXPORT EXCEL — adapté aux données administratives */
+    function telechargerExcel(nomFichier, nomFeuille, lignes) {
+      if (typeof XLSX === "undefined") {
+        alert("Le module Excel n'est pas disponible. Vérifiez votre connexion internet puis réessayez.");
+        return;
+      }
+      const worksheet = XLSX.utils.json_to_sheet(lignes);
+      worksheet['!autofilter'] = { ref: worksheet['!ref'] };
+      worksheet['!cols'] = Object.keys(lignes[0] || {}).map((cle) => ({
+        wch: Math.min(Math.max(String(cle).length + 2, 12), 30)
+      }));
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, nomFeuille.slice(0, 31));
+      XLSX.writeFile(workbook, nomFichier);
+    }
+
+    /* GÉNÉRATION ET TÉLÉCHARGEMENT D'UN FICHIER PDF */
     function telechargerPDF(nomFichier, titre, sousTitre, colonnes, lignes) {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF({ orientation: "landscape", unit: "pt", format: "a4" });
@@ -1177,31 +1219,6 @@ const auth = firebase.auth();
       return new Date().toISOString().slice(0, 16).replace(/[:T]/g, "-");
     }
 
-    /* RÈGLE CUTOFF DE 15H30 */
-    function evaluerCutoff15h30(timestamp) {
-      if (!timestamp) return { badge: '<span class="badge-cutoff badge-j1">⚡ Demain (J+1)</span>', dateFormatee: 'Non daté' };
-      
-      let dateObj = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-      const heure = dateObj.getHours();
-      const minute = dateObj.getMinutes();
-      const apres15h30 = (heure > 15) || (heure === 15 && minute >= 30);
-
-      const strDate = dateObj.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }) + ' à ' +
-                      dateObj.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-
-      if (apres15h30) {
-        return {
-          badge: '<span class="badge-cutoff badge-j2">⏰ J+2 (Après 15h30)</span>',
-          dateFormatee: strDate
-        };
-      } else {
-        return {
-          badge: '<span class="badge-cutoff badge-j1">⚡ Traitement J+1</span>',
-          dateFormatee: strDate
-        };
-      }
-    }
-
     /* CHARGER LE PROFIL */
     async function chargerProfilAdmin(user) {
       let prenomAffichage = "Admin";
@@ -1240,6 +1257,7 @@ const auth = firebase.auth();
 
       db.collection("demandes_enlevement")
         .onSnapshot(snapshot => {
+          console.log("demandes_enlevement Firebase :", snapshot.size, "document(s) reçus");
           const demandes = [];
           snapshot.forEach(doc => {
             const d = doc.data() || {};
@@ -1250,10 +1268,8 @@ const auth = firebase.auth();
 
           // Les demandes restent affichées tant qu'elles ne sont pas marquées "traitée"
           demandes.sort((a, b) => {
-            const ta = a.d.dateDemande;
-            const tb = b.d.dateDemande;
-            const da = ta && ta.toDate ? ta.toDate().getTime() : (ta ? new Date(ta).getTime() : 0);
-            const dbb = tb && tb.toDate ? tb.toDate().getTime() : (tb ? new Date(tb).getTime() : 0);
+            const da = convertirDate(a.d.dateDemande)?.getTime() || 0;
+            const dbb = convertirDate(b.d.dateDemande)?.getTime() || 0;
             return dbb - da;
           });
 
@@ -1298,7 +1314,7 @@ const auth = firebase.auth();
         }, error => {
           console.error("Erreur écoute demandes d'enlèvement :", error);
           const detail = error.code === 'permission-denied'
-            ? "Accès refusé par les règles Firestore pour demandes_enlevement."
+            ? "Accès refusé par les règles Firestore pour la collection demandes_enlevement. L'utilisateur connecté doit disposer du droit de lecture."
             : (error.message || error.code || "Erreur inconnue");
           container.innerHTML = `<div class="message erreur" style="display:block;">⚠️ Erreur demandes : ${detail}</div>`;
         });
@@ -1733,44 +1749,40 @@ const auth = firebase.auth();
 
     /* TÉLÉCHARGEMENT — DEMANDES D'ENLÈVEMENT */
     document.getElementById("btnTelechargerEnlevements").addEventListener("click", () => {
-      const colonnes = ["Site", "Flux", "N° benne", "Message", "Agent", "Date de la demande", "Statut"];
-      const lignes = derniereListeEnlevements.map(({ d }) => [
-        d.site || formatNomSite(d.siteId),
-        formatNomFlux(d.flux),
-        d.numeroBenne || "—",
-        d.message || "—",
-        d.agent || "Agent",
-        formatDateDemande(d.dateDemande),
-        "EN ATTENTE"
-      ]);
-      telechargerPDF(
-        `demandes-enlevement_${horodatageFichier()}.pdf`,
-        "Demandes d'enlèvement",
-        `SICTOM Zone de Dole · ${lignes.length} demande(s) en attente`,
-        colonnes,
-        lignes
+      const lignes = derniereListeEnlevements.map(({ d }) => ({
+        "Site": d.site || formatNomSite(d.siteId),
+        "Flux": formatNomFlux(d.flux),
+        "N° benne": d.numeroBenne || "—",
+        "Message": d.message || "—",
+        "Agent": d.agent || "Agent",
+        "Email agent": d.agentEmail || "—",
+        "Date de la demande": formatDateDemande(d.dateDemande),
+        "Statut": "EN ATTENTE"
+      }));
+
+      telechargerExcel(
+        `demandes-enlevement_${horodatageFichier()}.xlsx`,
+        "Demandes",
+        lignes.length ? lignes : [{ "Information": "Aucune demande d'enlèvement en attente" }]
       );
     });
 
     /* TÉLÉCHARGEMENT — HISTORIQUE DES CHANGEMENTS (24H) */
     document.getElementById("btnTelechargerHistorique").addEventListener("click", () => {
-      const colonnes = ["Site", "Flux", "Nouveau statut", "Agent", "Date du changement"];
-      const lignes = dernierHistoriqueRecent.map(({ d, dateStr }) => {
-        const statut = d.nouveauStatut || d.statut || "Modifié";
-        return [
-          d.site || formatNomSite(d.siteId),
-          formatNomFlux(d.flux, d),
-          String(statut).toUpperCase(),
-          d.agent || "Agent",
-          dateStr
-        ];
-      });
-      telechargerPDF(
-        `historique-statuts-24h_${horodatageFichier()}.pdf`,
-        "Historique des changements de statut — dernières 24h",
-        `SICTOM Zone de Dole · ${lignes.length} changement(s) enregistré(s)`,
-        colonnes,
-        lignes
+      const lignes = dernierHistoriqueRecent.map(({ d, dateStr }) => ({
+        "Site": d.site || formatNomSite(d.siteId),
+        "Flux": formatNomFlux(d.flux, d),
+        "Nouveau statut": String(d.nouveauStatut || d.statut || "Modifié").toUpperCase(),
+        "Agent": d.agent || "Agent",
+        "Email agent": d.agentEmail || "—",
+        "Date du changement": dateStr,
+        "Type": d.type || "—"
+      }));
+
+      telechargerExcel(
+        `historique-statuts-24h_${horodatageFichier()}.xlsx`,
+        "Historique 24h",
+        lignes.length ? lignes : [{ "Information": "Aucun changement de statut sur les dernières 24 heures" }]
       );
     });
   </script>
