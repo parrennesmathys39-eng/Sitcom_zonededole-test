@@ -1100,6 +1100,7 @@ const auth = firebase.auth();
     let nomAdminConnecte = "Administrateur";
     let demandeSelectionneeId = null;
     let derniereListeEnlevements = [];
+    let toutesLesDemandesEnlevement = [];
     let dernierHistoriqueRecent = [];
 
     function formatNomSite(id) {
@@ -1258,15 +1259,26 @@ const auth = firebase.auth();
       db.collection("demandes_enlevement")
         .onSnapshot(snapshot => {
           console.log("demandes_enlevement Firebase :", snapshot.size, "document(s) reçus");
+          const toutesLesDemandes = [];
           const demandes = [];
           snapshot.forEach(doc => {
             const d = doc.data() || {};
+            const item = { id: doc.id, d: d };
+            toutesLesDemandes.push(item);
             if (d.statutDemande === "en_attente" || !d.statutDemande) {
-              demandes.push({ id: doc.id, d: d });
+              demandes.push(item);
             }
           });
 
-          // Les demandes restent affichées tant qu'elles ne sont pas marquées "traitée"
+          // Référentiel complet conservé pour l'export : traitées + non traitées.
+          toutesLesDemandes.sort((a, b) => {
+            const da = convertirDate(a.d.dateDemande)?.getTime() || 0;
+            const dbb = convertirDate(b.d.dateDemande)?.getTime() || 0;
+            return da - dbb; // ordre chronologique de création
+          });
+          toutesLesDemandesEnlevement = toutesLesDemandes;
+
+          // L'interface n'affiche que les demandes encore en attente.
           demandes.sort((a, b) => {
             const da = convertirDate(a.d.dateDemande)?.getTime() || 0;
             const dbb = convertirDate(b.d.dateDemande)?.getTime() || 0;
@@ -1467,18 +1479,24 @@ const auth = firebase.auth();
           let html = "";
           elementsRecents.slice(0, 50).forEach(({ d, dateStr }) => {
             const statut = d.nouveauStatut || d.statut || "Modifié";
+            const ancienStatut = d.ancienStatut || "";
             let badgeClass = "statut-attente";
             if (statut === "pleine" || statut === "urgent") badgeClass = "count-rouge";
             else if (statut === "presque") badgeClass = "count-orange";
             else if (statut === "disponible" || statut === "traite") badgeClass = "statut-traite";
 
+            let libelleStatut = String(statut).toUpperCase();
+            if (d.type === "traitement_demande_enlevement" && ancienStatut) {
+              libelleStatut = `${String(ancienStatut).toUpperCase()} → TRAITÉE`;
+            }
+
             html += `
               <div class="historique-item">
                 <div>
-                  <div class="historique-nom">${d.site || formatNomSite(d.siteId)} — ${formatNomFlux(d.flux, d)}</div>
-                  <div class="historique-sub">Modifié par ${d.agent || 'Agent'} le ${dateStr}</div>
+                  <div class="historique-nom">${echapperHTML(d.site || formatNomSite(d.siteId))} — ${echapperHTML(formatNomFlux(d.flux, d))}</div>
+                  <div class="historique-sub">Modifié par ${echapperHTML(d.agent || 'Agent')} le ${dateStr}</div>
                 </div>
-                <div><span class="badge-statut ${badgeClass}">${String(statut).toUpperCase()}</span></div>
+                <div><span class="badge-statut ${badgeClass}">${echapperHTML(libelleStatut)}</span></div>
               </div>`;
           });
           container.innerHTML = html;
@@ -1724,11 +1742,13 @@ const auth = firebase.auth();
         });
 
         const refHistorique = db.collection("historique_statuts").doc();
+        const ancienStatutDemande = demande.statut || "non renseigné";
         batch.set(refHistorique, {
           site: demande.site || formatNomSite(demande.siteId),
           siteId: demande.siteId || "",
           flux: demande.flux || "",
           numeroBenne: demande.numeroBenne || "",
+          ancienStatut: ancienStatutDemande,
           nouveauStatut: "traite",
           statut: "traite",
           agent: nomAdminConnecte,
@@ -1749,21 +1769,26 @@ const auth = firebase.auth();
 
     /* TÉLÉCHARGEMENT — DEMANDES D'ENLÈVEMENT */
     document.getElementById("btnTelechargerEnlevements").addEventListener("click", () => {
-      const lignes = derniereListeEnlevements.map(({ d }) => ({
-        "Site": d.site || formatNomSite(d.siteId),
-        "Flux": formatNomFlux(d.flux),
-        "N° benne": d.numeroBenne || "—",
-        "Message": d.message || "—",
-        "Agent": d.agent || "Agent",
-        "Email agent": d.agentEmail || "—",
-        "Date de la demande": formatDateDemande(d.dateDemande),
-        "Statut": "EN ATTENTE"
-      }));
+      const lignes = toutesLesDemandesEnlevement.map(({ d }) => {
+        const estTraitee = d.statutDemande === "traitee";
+        return {
+          "Date de la demande": formatDateDemande(d.dateDemande),
+          "Site": d.site || formatNomSite(d.siteId),
+          "Flux": formatNomFlux(d.flux),
+          "N° benne": d.numeroBenne || "—",
+          "Message": d.message || "—",
+          "Agent": d.agent || "Agent",
+          "Email agent": d.agentEmail || "—",
+          "Statut": estTraitee ? "TRAITÉE" : "EN ATTENTE",
+          "Traitée par": estTraitee ? (d.traitePar || "—") : "—",
+          "Date du traitement": estTraitee ? formatDateDemande(d.dateTraitement) : "—"
+        };
+      });
 
       telechargerExcel(
         `demandes-enlevement_${horodatageFichier()}.xlsx`,
         "Demandes",
-        lignes.length ? lignes : [{ "Information": "Aucune demande d'enlèvement en attente" }]
+        lignes.length ? lignes : [{ "Information": "Aucune demande d'enlèvement" }]
       );
     });
 
@@ -1772,7 +1797,9 @@ const auth = firebase.auth();
       const lignes = dernierHistoriqueRecent.map(({ d, dateStr }) => ({
         "Site": d.site || formatNomSite(d.siteId),
         "Flux": formatNomFlux(d.flux, d),
-        "Nouveau statut": String(d.nouveauStatut || d.statut || "Modifié").toUpperCase(),
+        "Statut": (d.type === "traitement_demande_enlevement" && d.ancienStatut)
+          ? `${String(d.ancienStatut).toUpperCase()} → TRAITÉE`
+          : String(d.nouveauStatut || d.statut || "Modifié").toUpperCase(),
         "Agent": d.agent || "Agent",
         "Email agent": d.agentEmail || "—",
         "Date du changement": dateStr,
