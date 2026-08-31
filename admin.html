@@ -553,20 +553,6 @@
       cursor: wait;
     }
 
-    .badge-cutoff {
-      padding: 5px 10px;
-      border-radius: 20px;
-      font-size: 11.5px;
-      font-weight: 700;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      white-space: nowrap;
-    }
-
-    .badge-j1 { background: var(--ok-fond); color: var(--ok-texte); border: 1px solid var(--ok-trait); }
-    .badge-j2 { background: var(--attn-fond); color: var(--attn-texte); border: 1px solid var(--attn-trait); }
-
     /* STATISTIQUES GLOBALES */
     .grille-stats {
       display: grid;
@@ -923,7 +909,7 @@
           <div>
             <h2 class="section-header-title" style="margin-bottom:4px;">📋 Demandes d'enlèvement</h2>
             <p style="margin:0; font-size:12.5px; color:var(--encre-douce);">
-              Ordres de rotation transmis par les agents, affichés jusqu'à leur traitement (Heure limite : 15h30).
+              Ordres de rotation transmis par les agents, affichés jusqu'à leur traitement.
             </p>
           </div>
           <button id="btnTelechargerEnlevements" class="bouton-action bouton-telecharger">⬇️ Télécharger (PDF)</button>
@@ -1280,7 +1266,7 @@ const auth = firebase.auth();
 
           let html = "";
           demandes.forEach(({ id, d }) => {
-            const cutoffInfo = evaluerCutoff15h30(d.dateDemande);
+            const dateDemande = formatDateDemande(d.dateDemande);
             const siteAffiche = d.site || formatNomSite(d.siteId);
             const fluxAffiche = formatNomFlux(d.flux);
             html += `
@@ -1290,12 +1276,12 @@ const auth = firebase.auth();
                   <div class="demande-meta">
                     <span>Flux : <strong>${fluxAffiche}</strong></span>
                     ${d.numeroBenne ? `<span class="code-benne">Benne ${d.numeroBenne}</span>` : ''}
-                    <span>Par : ${d.agent || 'Agent'} (${cutoffInfo.dateFormatee})</span>
+                    <span>Par : ${echapperHTML(d.agent || 'Agent')} (${dateDemande})</span>
                   </div>
                   ${d.message ? `<div class="demande-message">💬 <span>${echapperHTML(d.message)}</span></div>` : ''}
                 </div>
                 <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
-                  ${cutoffInfo.badge}
+                  <span class="badge-statut statut-attente">EN ATTENTE</span>
                   <button
                     class="bouton-action btn-marquer-traitee"
                     data-id="${id}"
@@ -1655,24 +1641,111 @@ const auth = firebase.auth();
     /* FILTRE DE LA LISTE DES AGENTS */
     document.getElementById("filtreAgents").addEventListener("change", afficherAgents);
 
-    /* TÉLÉCHARGEMENT — DEMANDES D'ENLÈVEMENT (48H) */
+    /* TRAITEMENT D'UNE DEMANDE D'ENLÈVEMENT */
+    const modalTraitement = document.getElementById("modalTraitement");
+    const recapTraitement = document.getElementById("recapTraitement");
+    const btnAnnulerTraitement = document.getElementById("btnAnnulerTraitement");
+    const btnConfirmerTraitement = document.getElementById("btnConfirmerTraitement");
+
+    function fermerModalTraitement() {
+      modalTraitement.style.display = "none";
+      demandeSelectionneeId = null;
+      btnConfirmerTraitement.disabled = false;
+      btnConfirmerTraitement.textContent = "Confirmer le traitement";
+    }
+
+    // Délégation d'événement : fonctionne aussi après chaque rafraîchissement temps réel.
+    document.getElementById("listeEnlevements").addEventListener("click", (event) => {
+      const bouton = event.target.closest(".btn-marquer-traitee");
+      if (!bouton) return;
+
+      demandeSelectionneeId = bouton.dataset.id;
+      const site = bouton.dataset.site || "Site inconnu";
+      const flux = bouton.dataset.flux || "Flux non spécifié";
+      const benne = bouton.dataset.benne ? ` · Benne ${bouton.dataset.benne}` : "";
+
+      recapTraitement.innerHTML = `
+        <strong>Déchèterie :</strong> ${echapperHTML(site)}<br>
+        <strong>Flux :</strong> ${echapperHTML(flux)}${benne ? `<br><strong>N° de benne :</strong> ${echapperHTML(bouton.dataset.benne)}` : ""}
+      `;
+      modalTraitement.style.display = "flex";
+    });
+
+    btnAnnulerTraitement.addEventListener("click", fermerModalTraitement);
+
+    modalTraitement.addEventListener("click", (event) => {
+      if (event.target === modalTraitement) fermerModalTraitement();
+    });
+
+    btnConfirmerTraitement.addEventListener("click", async () => {
+      if (!demandeSelectionneeId) return;
+
+      const id = demandeSelectionneeId;
+      btnConfirmerTraitement.disabled = true;
+      btnConfirmerTraitement.textContent = "Enregistrement…";
+
+      try {
+        const refDemande = db.collection("demandes_enlevement").doc(id);
+        const snapshot = await refDemande.get();
+
+        if (!snapshot.exists) {
+          throw new Error("Cette demande n'existe plus.");
+        }
+
+        const demande = snapshot.data() || {};
+        if (demande.statutDemande === "traitee") {
+          fermerModalTraitement();
+          return;
+        }
+
+        const maintenant = firebase.firestore.Timestamp.now();
+        const batch = db.batch();
+
+        batch.update(refDemande, {
+          statutDemande: "traitee",
+          dateTraitement: maintenant,
+          traitePar: nomAdminConnecte
+        });
+
+        const refHistorique = db.collection("historique_statuts").doc();
+        batch.set(refHistorique, {
+          site: demande.site || formatNomSite(demande.siteId),
+          siteId: demande.siteId || "",
+          flux: demande.flux || "",
+          numeroBenne: demande.numeroBenne || "",
+          nouveauStatut: "traite",
+          statut: "traite",
+          agent: nomAdminConnecte,
+          dateChangement: maintenant,
+          type: "traitement_demande_enlevement",
+          demandeId: id
+        });
+
+        await batch.commit();
+        fermerModalTraitement();
+      } catch (e) {
+        console.error("Erreur traitement demande :", e);
+        btnConfirmerTraitement.disabled = false;
+        btnConfirmerTraitement.textContent = "Confirmer le traitement";
+        alert("Impossible de marquer la demande comme traitée : " + (e.message || "erreur inconnue"));
+      }
+    });
+
+    /* TÉLÉCHARGEMENT — DEMANDES D'ENLÈVEMENT */
     document.getElementById("btnTelechargerEnlevements").addEventListener("click", () => {
-      const colonnes = ["Site", "Flux", "N° benne", "Message", "Agent", "Date de la demande", "Traitement"];
-      const lignes = derniereListeEnlevements.map(({ d }) => {
-        const cutoffInfo = evaluerCutoff15h30(d.dateDemande);
-        return [
-          d.site || formatNomSite(d.siteId),
-          formatNomFlux(d.flux),
-          d.numeroBenne || "—",
-          d.message || "—",
-          d.agent || "Agent",
-          cutoffInfo.dateFormatee,
-          cutoffInfo.badge.includes("J+2") ? "J+2 (après 15h30)" : "J+1"
-        ];
-      });
+      const colonnes = ["Site", "Flux", "N° benne", "Message", "Agent", "Date de la demande", "Statut"];
+      const lignes = derniereListeEnlevements.map(({ d }) => [
+        d.site || formatNomSite(d.siteId),
+        formatNomFlux(d.flux),
+        d.numeroBenne || "—",
+        d.message || "—",
+        d.agent || "Agent",
+        formatDateDemande(d.dateDemande),
+        "EN ATTENTE"
+      ]);
       telechargerPDF(
-        `demandes-enlevement-48h_${horodatageFichier()}.pdf`,
-        "Demandes d'enlèvement — dernières 48h",
+        `demandes-enlevement_${horodatageFichier()}.pdf`,
+        "Demandes d'enlèvement",
         `SICTOM Zone de Dole · ${lignes.length} demande(s) en attente`,
         colonnes,
         lignes
