@@ -434,6 +434,125 @@
       border-color: var(--vert-mousse);
     }
 
+    /* BOUTON "MARQUER COMME TRAITÉE" */
+    .btn-marquer-traitee {
+      background: var(--papier);
+      color: var(--ok-texte);
+      border-color: var(--ok-trait);
+      font-size: 12.5px;
+      padding: 7px 12px;
+      white-space: nowrap;
+    }
+
+    .btn-marquer-traitee:hover {
+      background: var(--ok-fond);
+    }
+
+    /* MODALE DE CONFIRMATION */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(20, 35, 25, 0.6);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .modal-card {
+      background: var(--papier);
+      border-radius: var(--rayon-lg);
+      width: 100%;
+      max-width: 440px;
+      padding: 24px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+      border: 1px solid var(--trait);
+      animation: modalApparition 0.2s ease-out;
+    }
+
+    @keyframes modalApparition {
+      from { transform: scale(0.95); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .modal-header h3 {
+      margin: 0;
+      font-size: 19px;
+      color: var(--vert-nuit);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .modal-header p {
+      margin: 6px 0 0;
+      font-size: 13.5px;
+      color: var(--encre-douce);
+      line-height: 1.5;
+    }
+
+    #recapTraitement {
+      margin-top: 14px;
+      font-size: 13.5px;
+      color: var(--encre);
+      background: var(--fond);
+      border: 1px solid var(--trait);
+      border-radius: var(--rayon);
+      padding: 12px 14px;
+      line-height: 1.6;
+    }
+
+    #recapTraitement strong {
+      color: var(--vert-nuit);
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 18px;
+      justify-content: flex-end;
+    }
+
+    .btn-modal {
+      padding: 10px 16px;
+      border-radius: var(--rayon);
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.15s ease;
+      font-family: inherit;
+    }
+
+    .btn-modal-secondaire {
+      background: #F0F2EF;
+      color: var(--encre-douce);
+      border-color: var(--trait);
+    }
+
+    .btn-modal-secondaire:hover {
+      background: #E2E6E1;
+    }
+
+    .btn-modal-primaire {
+      background: var(--ok-trait);
+      color: #FFFFFF;
+    }
+
+    .btn-modal-primaire:hover {
+      background: #1F8A49;
+    }
+
+    .btn-modal-primaire:disabled {
+      opacity: 0.65;
+      cursor: wait;
+    }
+
     .badge-cutoff {
       padding: 5px 10px;
       border-radius: 20px;
@@ -804,7 +923,7 @@
           <div>
             <h2 class="section-header-title" style="margin-bottom:4px;">📋 Demandes d'enlèvement</h2>
             <p style="margin:0; font-size:12.5px; color:var(--encre-douce);">
-              Ordres de rotation transmis par les agents sur les dernières 48h (Heure limite de traitement : 15h30).
+              Ordres de rotation transmis par les agents, affichés jusqu'à leur traitement (Heure limite : 15h30).
             </p>
           </div>
           <button id="btnTelechargerEnlevements" class="bouton-action bouton-telecharger">⬇️ Télécharger (PDF)</button>
@@ -924,6 +1043,21 @@
     </div>
   </div>
 
+  <!-- MODALE : CONFIRMATION DE TRAITEMENT D'UNE DEMANDE -->
+  <div id="modalTraitement" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>✅ Marquer comme traitée</h3>
+        <p>Cette demande sera retirée des demandes en attente et ajoutée à l'historique des changements. Cette action est enregistrée avec votre nom et l'heure.</p>
+      </div>
+      <div id="recapTraitement"></div>
+      <div class="modal-actions">
+        <button id="btnAnnulerTraitement" class="btn-modal btn-modal-secondaire">Annuler</button>
+        <button id="btnConfirmerTraitement" class="btn-modal btn-modal-primaire">Confirmer le traitement</button>
+      </div>
+    </div>
+  </div>
+
   <!-- FIREBASE SDK -->
   <script src="https://www.gstatic.com/firebasejs/12.16.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/12.16.0/firebase-auth-compat.js"></script>
@@ -976,6 +1110,8 @@ const auth = firebase.auth();
 
     let donneesSites = {};
     let tousLesAgents = [];
+    let nomAdminConnecte = "Administrateur";
+    let demandeSelectionneeId = null;
     let derniereListeEnlevements = [];
     let dernierHistoriqueRecent = [];
 
@@ -1105,6 +1241,7 @@ const auth = firebase.auth();
 
       prenomHeader.textContent = prenomAffichage;
       nomAdmin.textContent = nomComplet;
+      nomAdminConnecte = nomComplet || prenomAffichage || "Administrateur";
       avatarAgent.textContent = prenomAffichage.charAt(0).toUpperCase();
     }
 
@@ -1125,17 +1262,8 @@ const auth = firebase.auth();
             }
           });
 
-          // On ne conserve que les demandes des dernières 48h
-          const maintenant = Date.now();
-          const limite48h = 48 * 60 * 60 * 1000;
-          const demandesRecentes = demandes.filter(({ d }) => {
-            const ts = d.dateDemande;
-            if (!ts) return true; // pas de date connue : affichée par prudence
-            const dateObj = ts.toDate ? ts.toDate() : new Date(ts);
-            return (maintenant - dateObj.getTime()) <= limite48h;
-          });
-
-          demandesRecentes.sort((a, b) => {
+          // Les demandes restent affichées tant qu'elles ne sont pas marquées "traitée"
+          demandes.sort((a, b) => {
             const ta = a.d.dateDemande;
             const tb = b.d.dateDemande;
             const da = ta && ta.toDate ? ta.toDate().getTime() : (ta ? new Date(ta).getTime() : 0);
@@ -1143,28 +1271,41 @@ const auth = firebase.auth();
             return dbb - da;
           });
 
-          derniereListeEnlevements = demandesRecentes;
+          derniereListeEnlevements = demandes;
 
-          if (demandesRecentes.length === 0) {
-            container.innerHTML = '<div class="message succes" style="display:block;">✅ Aucune demande d\'enlèvement en attente sur les dernières 48h.</div>';
+          if (demandes.length === 0) {
+            container.innerHTML = '<div class="message succes" style="display:block;">✅ Aucune demande d\'enlèvement en attente.</div>';
             return;
           }
 
           let html = "";
-          demandesRecentes.forEach(({ d }) => {
+          demandes.forEach(({ id, d }) => {
             const cutoffInfo = evaluerCutoff15h30(d.dateDemande);
+            const siteAffiche = d.site || formatNomSite(d.siteId);
+            const fluxAffiche = formatNomFlux(d.flux);
             html += `
               <div class="demande-item">
                 <div class="demande-info">
-                  <h4>📍 Déchèterie de ${d.site || formatNomSite(d.siteId)}</h4>
+                  <h4>📍 Déchèterie de ${siteAffiche}</h4>
                   <div class="demande-meta">
-                    <span>Flux : <strong>${formatNomFlux(d.flux)}</strong></span>
+                    <span>Flux : <strong>${fluxAffiche}</strong></span>
                     ${d.numeroBenne ? `<span class="code-benne">Benne ${d.numeroBenne}</span>` : ''}
                     <span>Par : ${d.agent || 'Agent'} (${cutoffInfo.dateFormatee})</span>
                   </div>
                   ${d.message ? `<div class="demande-message">💬 <span>${echapperHTML(d.message)}</span></div>` : ''}
                 </div>
-                <div>${cutoffInfo.badge}</div>
+                <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
+                  ${cutoffInfo.badge}
+                  <button
+                    class="bouton-action btn-marquer-traitee"
+                    data-id="${id}"
+                    data-site="${echapperHTML(siteAffiche)}"
+                    data-flux="${echapperHTML(fluxAffiche)}"
+                    data-siteid="${echapperHTML(d.siteId || '')}"
+                    data-fluxid="${echapperHTML(d.flux || '')}"
+                    data-benne="${echapperHTML(d.numeroBenne || '')}"
+                  >✅ Marquer comme traitée</button>
+                </div>
               </div>`;
           });
           container.innerHTML = html;
